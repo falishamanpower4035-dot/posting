@@ -22,3 +22,16 @@ Thumbs.db
 *.tar.gz
 *.zip
 *.rar
+
+# Credential files - NEVER commit these
+tripavail_ai/client_secret.json
+tripavail_ai/client_secret_*.json
+tripavail_ai/nanobnana-*.json
+tripavail_ai/config/gen-lang-*.json
+tripavail_ai/gmail_token.json
+**/token.json
+**/*_token.json
+venv/
+.venv/
+env/
+.env/

@@ -1,0 +1,93 @@
+# TripAvail AI Environment Variables
+# Copy this file to .env and fill in your actual API keys
+
+# OpenAI API Key for AI functionality
+OPENAI_API_KEY=your-openai-api-key-here
+
+# NewsData.io API Key for news aggregation
+NEWSDATA_API_KEY=your-newsdata-api-key-here
+
+# Meta Page Token for Facebook integration
+META_PAGE_TOKEN=
+
+# YouTube API Key for video content
+YOUTUBE_API_KEY=
+# YouTube title max length (default: 70, can be overridden in config/settings.py)
+# YOUTUBE_TITLE_MAX_LENGTH=70
+
+# Image Generation API Keys (Short Videos)
+UNSPLASH_ACCESS_KEY=your-unsplash-access-key
+UNSPLASH_SECRET_KEY=your-unsplash-secret-key
+UNSPLASH_APP_ID=your-unsplash-app-id
+PEXELS_API_KEY=your-pexels-api-key
+STABILITY_API_KEY=your-stability-api-key
+
+# Image Generation API Keys (Long Videos - Separate from Short Videos)
+# NOTE: Pixabay is the HIGHEST PRIORITY image source for long videos
+PIXABAY_API_KEY_LONG=your-pixabay-api-key
+# NOTE: Pexels key is ONLY used for long videos. Short videos use PEXELS_API_KEY above.
+PEXELS_API_KEY_LONG=your-pexels-long-api-key
+UNSPLASH_APP_ID_LONG=your-unsplash-app-id-long
+UNSPLASH_ACCESS_KEY_LONG=your-unsplash-access-key-long
+UNSPLASH_SECRET_KEY_LONG=your-unsplash-secret-key-long
+
+# NanoBanana (Gemini) API Key
+NANONOB_API_KEY=
+NANOBNANA_API_KEY=
+
+# Google Cloud / Vertex AI (OAuth)
+GOOGLE_PROJECT_ID=your-gcp-project-id
+GOOGLE_APPLICATION_CREDENTIALS=nanobnana-1fa87a66cc0f.json
+GOOGLE_LOCATION=us-central1
+
+# Google Drive Configuration (for video uploads)
+# Using Service Account (recommended - no browser needed)
+GDRIVE_SERVICE_ACCOUNT_FILE=nanobnana-1fa87a66cc0f.json
+GDRIVE_FOLDER_ID=your-gdrive-folder-id
+
+# Optional: Database configuration
+# DATABASE_URL=
+
+# Optional: Server configuration
+# SERVER_HOST=localhost
+# SERVER_PORT=8000
+
+# Dropbox (preferred OAuth2 refresh flow)
+# If you provide a refresh token + app key/secret, tokens auto-refresh and won't expire every 4 hours
+DROPBOX_REFRESH_TOKEN=your-dropbox-refresh-token
+DROPBOX_APP_KEY=your-dropbox-app-key
+DROPBOX_APP_SECRET=your-dropbox-app-secret
+# Optional: legacy short-lived token fallback (not recommended for production)
+DROPBOX_ACCESS_TOKEN=
+
+# Email Notifications
+# Method: 'smtp' or 'gmail_api' (gmail_api recommended - works even if ports are blocked)
+EMAIL_METHOD=gmail_api
+EMAIL_ENABLED=1
+# For Gmail API: requires client_secret.json and gmail_token.json (run scripts/authorize_gmail_api.py)
+GMAIL_CLIENT_SECRET_FILE=client_secret.json
+GMAIL_TOKEN_FILE=gmail_token.json
+# For SMTP: set SMTP_PASSWORD if using EMAIL_METHOD=smtp
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=
+# Email address to receive notifications
+NOTIFY_EMAIL=your-notify-email@gmail.com
+
+# Shutterstock (Stock images)
+# Recommended: Use OAuth2 Bearer token
+SHUTTERSTOCK_ACCESS_TOKEN=
+# Optional if you implement token exchange programmatically
+SHUTTERSTOCK_CLIENT_ID=
+SHUTTERSTOCK_CLIENT_SECRET=
+
+# Long Video Settings
+LONG_VIDEO_ENABLED=true
+LONG_VIDEO_GENERATION_TIME=20:00
+TRENDING_DETECTION_INTERVAL_HOURS=12
+TRENDING_DETECTION_TIME=08:00,20:00
+
+# ElevenLabs API Key (Long Videos)
+ELEVENLABS_API_KEY_LONG=your-elevenlabs-api-key
+ELEVENLABS_VOICE_ID_LONG=lxYfHSkYm1EzQzGhdbfc

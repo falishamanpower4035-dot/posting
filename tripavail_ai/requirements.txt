@@ -1,0 +1,58 @@
+# Core AI and ML libraries
+openai>=1.10.0
+langchain>=0.1.0
+langchain-openai>=0.1.0
+
+# Web scraping and API clients
+requests>=2.31.0
+httpx>=0.25.0
+beautifulsoup4>=4.12.0
+selenium>=4.15.0
+
+# Data processing
+pandas>=2.1.0
+numpy>=1.24.0
+python-dotenv>=1.0.0
+
+# Video processing (for ffmpeg integration)
+moviepy>=1.0.3
+
+# Social media APIs
+facebook-sdk>=3.1.0
+google-api-python-client>=2.100.0
+
+# News API
+feedparser>=6.0.0
+
+# Web framework (if needed)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Database (if needed)
+sqlalchemy>=2.0.0
+
+# Utilities
+python-dateutil>=2.8.0
+pytz>=2023.3
+schedule>=1.2.0
+
+# Logging and monitoring
+loguru>=0.7.0
+
+# Image processing and OCR
+Pillow>=10.0.0
+pytesseract>=0.3.13
+opencv-python>=4.12.0
+
+# Image API clients
+# (requests/httpx already listed above)
+google-cloud-aiplatform>=1.66.0
+dropbox>=12.0.0
+
+# (moviepy already listed above)
+
+# Development tools
+pytest>=7.4.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.6.0

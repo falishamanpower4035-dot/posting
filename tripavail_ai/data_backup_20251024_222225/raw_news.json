@@ -1,0 +1,144 @@
+{
+  "timestamp": "2025-10-24T10:22:03.767075+00:00",
+  "source": "NewsData.io",
+  "query": "visa OR tourist policy OR entry rules",
+  "articles": [
+    {
+      "title": "BBC 'to stick with all female Strictly hosting duo' as it's revealed Tess Daly and Claudia Winkleman decided to leave 'last year'",
+      "description": "The current hosts, who have fronted the show together since 2014, announced their departure in an emotional social media video to fans on Thursday.",
+      "link": "https://www.dailymail.co.uk/tvshowbiz/article-15222007/BBC-female-Strictly-host-Tess-Daly-Claudia-Winkleman-quit.html",
+      "country": [
+        "united kingdom"
+      ],
+      "pubDate": "2025-10-23 22:21:32",
+      "source_id": "dailymailuk",
+      "category": [
+        "entertainment"
+      ]
+    },
+    {
+      "title": "The real takeaway from the NBA betting scandal? The complicity of all of sports",
+      "description": "With a federal investigation into illegal gambling, NBA commissioner Adam Silver is reliving his predecessor's worst nightmare.",
+      "link": "https://www.nytimes.com/athletic/6744482/2025/10/23/nba-gambling-scandal-league-betting-companies-takeaways/",
+      "country": [
+        "united states of america"
+      ],
+      "pubDate": "2025-10-23 22:21:18",
+      "source_id": "theathleticuk",
+      "category": [
+        "sports"
+      ]
+    },
+    {
+      "title": "Forest's winless streak ends as two penalties down Porto, Midtjylland stay perfect",
+      "description": "NOTTINGHAM, England - Nottingham Forest handed manager Sean Dyche the perfect debut with a 2-0 home win over Porto in the Europa League on Thursday, with both goals coming from the penalty spot as the hosts ended a run of 10 games without victory.",
+      "link": "https://www.straitstimes.com/sport/football/Forests-winless-streak-ends-as-two-penalties-down-Porto-Midtjylland-stay-perfect",
+      "country": [
+        "singapore"
+      ],
+      "pubDate": "2025-10-23 22:20:49",
+      "source_id": "straitstimes",
+      "category": [
+        "sports"
+      ]
+    },
+    {
+      "title": "Nottingham Forest 2-0 Porto, UEFA Europa League: Morgan Gibbs-White And Igor Jesus Penalties Hand Dyche Winning Start",
+      "description": "Nottingham Forest claimed a 2-0 Europa League win over Porto in Sean Dyche\u2019s debut, with penalties from Gibbs-White and Jesus securing the home side\u2019s first victory in eleven matches",
+      "link": "https://www.outlookindia.com/sports/football/nottingham-forest-vs-porto-match-report-uefa-europa-league-2025-26-matchday-3",
+      "country": [
+        "india"
+      ],
+      "pubDate": "2025-10-23 22:20:35",
+      "source_id": "outlookindia",
+      "category": [
+        "sports",
+        "top"
+      ]
+    },
+    {
+      "title": "Ludhiana: Primary schools prep for block games sans funds and mentors",
+      "description": "A few months back, the education department had advertised 2,000 posts for sports teachers in these schools; however, the advertisement was later withdrawn",
+      "link": "https://www.hindustantimes.com/cities/chandigarh-news/ludhianaprimary-schools-prep-for-block-games-sans-funds-and-mentors-101761243626954.html",
+      "country": [
+        "india"
+      ],
+      "pubDate": "2025-10-23 22:20:18",
+      "source_id": "hindustantimes",
+      "category": [
+        "sports",
+        "education",
+        "top"
+      ]
+    },
+    {
+      "title": "US court rejects Trump officials\u2019 effort to delay rulings on veterans benefits",
+      "description": "Unanimous ruling calls administration\u2019s push to halt reviews of veterans\u2019 disability appeals an \u201cextreme request\u201d",
+      "link": "https://ca.news.yahoo.com/us-court-rejects-trump-officials-222007414.html",
+      "country": [
+        "canada"
+      ],
+      "pubDate": "2025-10-23 22:20:07",
+      "source_id": "yahoo",
+      "category": [
+        "sports"
+      ]
+    },
+    {
+      "title": "US court rejects Trump officials\u2019 effort to delay rulings on veterans benefits",
+      "description": "Exclusive: unanimous ruling calls administration\u2019s push to halt reviews of disability appeals an \u2018extreme request\u2019A panel of US judges has rejected an effort by the Trump administration to delay court rulings on claims by veterans who say they have been unfairly denied disability benefits and other compensation tied to their military service.The 9-0 ruling, handed down Wednesday by the court of appeals for veterans claims, was led by chief judge Michael Allen, a Trump appointee. The action is the latest example of the growing number of federal judges pushing back against Trump administration moves. Continue reading...",
+      "link": "https://www.theguardian.com/us-news/2025/oct/23/court-trump-veterans-benefits-rulings",
+      "country": [
+        "united states of america"
+      ],
+      "pubDate": "2025-10-23 22:20:07",
+      "source_id": "theguardian",
+      "category": [
+        "politics",
+        "top"
+      ]
+    },
+    {
+      "title": "Sanjay Raut urges Congress to unite against BJP in Mumbai civic polls",
+      "description": "Invoking the historic Samyukta Maharashtra movement, he reminded Congress leaders that parties once united to protect Mumbai\u2019s identity",
+      "link": "https://www.thehindu.com/news/cities/mumbai/sanjay-raut-urges-congress-to-unite-against-bjp-in-mumbai-civic-polls/article70194670.ece",
+      "country": [
+        "india"
+      ],
+      "pubDate": "2025-10-23 22:20:00",
+      "source_id": "thehindu",
+      "category": [
+        "politics",
+        "top"
+      ]
+    },
+    {
+      "title": "Jewish safety concerns aren\u2019t on the agenda in Montreal as Quebecers head to municipal election",
+      "description": "Politicians are reluctant to discuss the hostile environment on campuses and streets.The post Jewish safety concerns aren\u2019t on the agenda in Montreal as Quebecers head to municipal election appeared first on The Canadian Jewish News.",
+      "link": "https://thecjn.ca/news/jewish-safety-concerns-arent-on-the-agenda-in-montreal-as-quebecers-head-to-municipal-election/",
+      "country": [
+        "canada"
+      ],
+      "pubDate": "2025-10-23 22:19:47",
+      "source_id": "thecjn",
+      "category": [
+        "politics",
+        "top"
+      ]
+    },
+    {
+      "title": "Families outraged after high school student in violent sex assault cases avoids prison as youthful offender",
+      "description": "Community outrage grows after a Payne County teen facing 11 felony charges for sexual assaults is spared prison under Oklahoma\u2019s youthful offender statute.",
+      "link": "https://www.foxnews.com/us/families-outraged-after-high-school-student-violent-sex-assault-cases-avoids-prison-youthful-offender",
+      "country": [
+        "united states of america"
+      ],
+      "pubDate": "2025-10-23 22:19:32",
+      "source_id": "foxnews",
+      "category": [
+        "crime",
+        "top"
+      ]
+    }
+  ]
+}

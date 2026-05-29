@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-10-24T15:22:14.491636",
+  "generated_at": "2025-10-24T15:22:14.491653",
+  "source": "TripAvail AI Caption Generator",
+  "input_source": "Global Tourism News Selector",
+  "total_posts": 2,
+  "posts": [
+    {
+      "caption": "Savor the flavors of Abu Dhabi! 🌟 Discover the new MICHELIN Guide with 11 exciting restaurants, featuring culinary gems that promise unforgettable dining experiences. Your taste buds will thank you! 🍽️✨ #FoodieParadise #TravelAbuDhabi #CulinaryAdv...",
+      "hashtags": [
+        "#TravelGoals",
+        "#EcoTourism",
+        "#TripAvail",
+        "#AbuDhabiEats",
+        "#MICHELINGuide",
+        "#FoodLovers",
+        "#Gastronomy",
+        "#MiddleEastTravel",
+        "#LuxuryDining",
+        "#ExploreAbuDhabi",
+        "#CulinaryJourney"
+      ],
+      "region": "Middle East",
+      "score": 9,
+      "original_title": "The Fourth Edition of The MICHELIN Guide Abu Dhabi Has Been Launched",
+      "original_summary": "The MICHELIN Guide Abu Dhabi 2026 has launched its fourth edition, spotlighting new additions to the city’s culinary landscape. This year’s selection reflects the city’s growing sophistication and diversity, with eleven new restaurants joining the selection, three of which have earned the Bib Gourmand distinction for offering exceptional food at great value, while three of the establishments retain their One MICHELIN Star distinctions.",
+      "generated_at": "2025-10-24T15:22:11.277959",
+      "topic_id": 1
+    },
+    {
+      "caption": "The future of storytelling and media innovation came alive at the 2025 NAB Show New York! 🌍✨ Dive into the intersection of trust, technology, and creativity. What’s next for the creator economy? #ExploreMore with TripAvail! 📸💡",
+      "hashtags": [
+        "#NABShow2025",
+        "#MediaInnovation",
+        "#Storytelling",
+        "#TravelInspiration",
+        "#CreatorEconomy",
+        "#NYCAdventures",
+        "#TechInTravel",
+        "#TripAvail",
+        "#GlobalConnections",
+        "#ExploreNYC",
+        "#TravelTrends"
+      ],
+      "region": "Americas",
+      "score": 7,
+      "original_title": "The 2025 NAB Show New York Wraps: Spotlighting the Future of Media, Storytelling and the Creator Economy",
+      "original_summary": "The 2025 NAB Show New York concluded at the Javits Center after two days of forward-looking sessions, hands-on exhibits and high-energy debate about where media is headed next. The event brought together journalists, executives and creators to explore how trust, technology and talent intersect in today’s content landscape.",
+      "generated_at": "2025-10-24T15:22:14.491006",
+      "topic_id": 2
+    }
+  ]
+}

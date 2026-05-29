@@ -1,0 +1,16 @@
+[Unit]
+Description=TripAvail Scheduler Daemon (posts due items)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/tripavail_ai
+Environment=PATH=/opt/tripavail_ai/venv/bin
+Environment=PYTHONPATH=/opt/tripavail_ai
+ExecStart=/opt/tripavail_ai/venv/bin/python scripts/scheduler_daemon.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

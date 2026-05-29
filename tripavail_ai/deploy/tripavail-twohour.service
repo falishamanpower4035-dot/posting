@@ -1,0 +1,11 @@
+[Unit]
+Description=TripAvail Two-Hour Scheduler (generate+schedule)
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/tripavail_ai
+Environment=PATH=/opt/tripavail_ai/venv/bin
+Environment=PYTHONPATH=/opt/tripavail_ai
+ExecStart=/opt/tripavail_ai/venv/bin/python scripts/run_two_hour_scheduler.py

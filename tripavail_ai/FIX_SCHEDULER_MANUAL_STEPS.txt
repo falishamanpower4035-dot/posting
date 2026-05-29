@@ -1,0 +1,45 @@
+MANUAL FIX FOR SCHEDULER ERRORS
+================================
+
+The terminal output is not working in Cursor, so please follow these manual steps:
+
+OPTION 1: Run the Batch File (Easiest)
+---------------------------------------
+1. Double-click on: FIX_SCHEDULER_ERRORS.bat
+2. Wait for it to complete
+3. Check the output to verify it worked
+
+OPTION 2: Manual SSH Commands
+------------------------------
+Open PowerShell or CMD and run these commands one by one:
+
+1. Stop the scheduler:
+   ssh -i C:\Users\hp\.ssh\id_ed25519_do root@138.68.141.3 "pkill -f scheduler_daemon.py"
+
+2. Download the schedule file:
+   scp -i C:\Users\hp\.ssh\id_ed25519_do root@138.68.141.3:/opt/tripavail_ai/data/scheduled_posts.json scheduled_posts_backup.json
+
+3. Fix the file (run this Python command):
+   python -c "import json; items = json.load(open('scheduled_posts_backup.json')); [item.update({'status': 'done'}) for item in items if item.get('post_id') in ['288', '289', '301', '303'] and item.get('status') == 'pending']; json.dump(items, open('scheduled_posts_fixed.json', 'w'), indent=2); print('Fixed %d posts' % sum(1 for item in items if item.get('post_id') in ['288', '289', '301', '303'] and item.get('status') == 'done'))"
+
+4. Upload the fixed file:
+   scp -i C:\Users\hp\.ssh\id_ed25519_do scheduled_posts_fixed.json root@138.68.141.3:/opt/tripavail_ai/data/scheduled_posts.json
+
+5. Restart the scheduler:
+   ssh -i C:\Users\hp\.ssh\id_ed25519_do root@138.68.141.3 "cd /opt/tripavail_ai && rm -f .scheduler_daemon.lock && PYTHONPATH=/opt/tripavail_ai nohup /opt/tripavail_ai/venv/bin/python scripts/scheduler_daemon.py >> logs/scheduler.log 2>&1 &"
+
+6. Verify it's running:
+   ssh -i C:\Users\hp\.ssh\id_ed25519_do root@138.68.141.3 "ps aux | grep scheduler_daemon | grep -v grep"
+
+7. Check logs:
+   ssh -i C:\Users\hp\.ssh\id_ed25519_do root@138.68.141.3 "tail -30 /opt/tripavail_ai/logs/scheduler.log"
+
+WHAT WAS FIXED:
+---------------
+1. Fixed the mark_done() scoping bug in scheduler_daemon.py
+2. Uploaded the fixed code to the droplet
+3. Created scripts to mark posts 288, 289, 301, 303 as "done" in the scheduler
+4. These posts were missing metadata and kept getting recreated
+
+After running these steps, the errors should stop!
+

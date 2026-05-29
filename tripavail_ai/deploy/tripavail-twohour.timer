@@ -1,0 +1,10 @@
+[Unit]
+Description=Run TripAvail scheduler every 2 hours
+
+[Timer]
+OnUnitActiveSec=2h
+Persistent=true
+Unit=tripavail-twohour.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,73 @@
+# Railway project config — three services plus a managed Postgres addon.
+#
+# Services:
+#   backend  → FastAPI (uvicorn) on PORT. Custom domain: api.summitautomates.com
+#   worker   → APScheduler loop. No public port.
+#   frontend → Next.js standalone (Node). Custom domain: app.summitautomates.com
+#
+# All three deploy from this same monorepo. `rootDirectory` + `dockerfilePath`
+# tell Railway which subdirectory to build from.
+#
+# Postgres: add the Postgres addon in the Railway UI; it auto-injects
+# DATABASE_URL into every service. Our code reads SMA_DATABASE_URL — see the
+# environment overrides below.
+
+[build]
+# Railway picks per-service settings; this is the project-level default.
+builder = "DOCKERFILE"
+
+# ─── backend service ──────────────────────────────────────────────────
+[[services]]
+name = "backend"
+
+[services.build]
+dockerfilePath = "Dockerfile"
+
+[services.deploy]
+# Runs `alembic upgrade head` then starts uvicorn (defined in Dockerfile CMD).
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+[services.variables]
+# Pulled from Railway's Postgres addon. Our code reads SMA_DATABASE_URL.
+SMA_DATABASE_URL = "${{Postgres.DATABASE_URL}}"
+DEPLOYMENT_MODE = "multi_tenant"
+PUBLIC_BASE_URL = "https://api.summitautomates.com"
+# The CORS allowlist for the frontend domain — set explicitly in prod.
+CORS_ALLOWED_ORIGINS = "https://app.summitautomates.com,https://summitautomates.com"
+
+# ─── worker service ───────────────────────────────────────────────────
+[[services]]
+name = "worker"
+
+[services.build]
+dockerfilePath = "Dockerfile"
+
+[services.deploy]
+startCommand = "python -m sma.worker.main"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+[services.variables]
+SMA_DATABASE_URL = "${{Postgres.DATABASE_URL}}"
+DEPLOYMENT_MODE = "multi_tenant"
+PUBLIC_BASE_URL = "https://api.summitautomates.com"
+
+# ─── frontend service ─────────────────────────────────────────────────
+[[services]]
+name = "frontend"
+
+[services.build]
+dockerfilePath = "Dockerfile"
+rootDirectory = "frontend"
+# Pass the API URL into the Next.js build (baked into the static bundle).
+buildArgs = { NEXT_PUBLIC_API_URL = "https://api.summitautomates.com" }
+
+[services.deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+[services.variables]
+NEXT_PUBLIC_API_URL = "https://api.summitautomates.com"

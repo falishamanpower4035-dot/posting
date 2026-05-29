@@ -1,0 +1,36 @@
+{
+  "posts": [
+    {
+      "post_id": 1,
+      "aspect_ratio": "9:16",
+      "accepted": 6,
+      "rejected": 0,
+      "ready_for_video": true,
+      "image_paths": [
+        "data\\images\\approved\\001\\img01.jpg",
+        "data\\images\\approved\\001\\img02.jpg",
+        "data\\images\\approved\\001\\img03.jpg",
+        "data\\images\\approved\\001\\img04.jpg",
+        "data\\images\\approved\\001\\img05.jpg",
+        "data\\images\\approved\\001\\img06.jpg"
+      ],
+      "rejected_paths": []
+    },
+    {
+      "post_id": 2,
+      "aspect_ratio": "9:16",
+      "accepted": 6,
+      "rejected": 0,
+      "ready_for_video": true,
+      "image_paths": [
+        "data\\images\\approved\\002\\img01.jpg",
+        "data\\images\\approved\\002\\img02.jpg",
+        "data\\images\\approved\\002\\img03.jpg",
+        "data\\images\\approved\\002\\img04.jpg",
+        "data\\images\\approved\\002\\img05.jpg",
+        "data\\images\\approved\\002\\img06.jpg"
+      ],
+      "rejected_paths": []
+    }
+  ]
+}

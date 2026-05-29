@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-10-24T09:50:53.119186+00:00",
+  "processed_at": "2025-10-24T09:51:07.170569+00:00",
+  "source": "TripAvail AI Global Tourism News Selector",
+  "input_source": "NewsData.io",
+  "batch_size": 10,
+  "top_stories_count": 2,
+  "top_tourism_stories": [
+    {
+      "title": "The Fourth Edition of The MICHELIN Guide Abu Dhabi Has Been Launched",
+      "summary": "The MICHELIN Guide Abu Dhabi 2026 has launched its fourth edition, spotlighting new additions to the city\u2019s culinary landscape. This year\u2019s selection reflects the city\u2019s growing sophistication and diversity, with eleven new restaurants joining the selection, three of which have earned the Bib Gourmand distinction for offering exceptional food at great value, while three of the establishments retain their One MICHELIN Star distinctions.",
+      "reason": "This article is highly relevant to global travelers interested in culinary tourism. It provides actionable information about new and noteworthy restaurants in Abu Dhabi, a global destination.",
+      "region": "Middle East",
+      "score": 9,
+      "source": "manilatimes"
+    },
+    {
+      "title": "The 2025 NAB Show New York Wraps: Spotlighting the Future of Media, Storytelling and the Creator Economy",
+      "summary": "The 2025 NAB Show New York concluded at the Javits Center after two days of forward-looking sessions, hands-on exhibits and high-energy debate about where media is headed next. The event brought together journalists, executives and creators to explore how trust, technology and talent intersect in today\u2019s content landscape.",
+      "reason": "The article is moderately relevant to global travelers interested in media, storytelling, and the creator economy. It provides information about a significant event in New York, a major global destination.",
+      "region": "Americas",
+      "score": 7,
+      "source": "manilatimes"
+    }
+  ]
+}

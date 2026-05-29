@@ -1,0 +1,7 @@
+file 'data/images/approved/001/img01.jpg'
+duration 5.0
+file 'data/images/approved/001/img02.jpg'
+duration 5.0
+file 'data/images/approved/001/img03.jpg'
+duration 5.0
+file 'data/images/approved/001/img03.jpg'
