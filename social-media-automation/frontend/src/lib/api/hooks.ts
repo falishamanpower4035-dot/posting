@@ -91,6 +91,32 @@ export function useMe(opts?: Partial<UseQueryOptions<Me>>) {
   });
 }
 
+export interface ConfigUpdate {
+  daily_short_videos: number;
+  daily_long_videos: number;
+}
+
+export function useUpdateConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: ConfigUpdate) =>
+      api<Me>("/api/me/config", { method: "PATCH", body }),
+    onSuccess: (data) => qc.setQueryData(qk.me, data),
+  });
+}
+
+export interface ChangePasswordBody {
+  current_password: string;
+  new_password: string;
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (body: ChangePasswordBody) =>
+      api<{ message: string }>("/api/me/change-password", { method: "POST", body }),
+  });
+}
+
 // ─── Niches ────────────────────────────────────────────────────────────────
 
 export type NichesList = Resp200<"/api/niches", "get">;

@@ -78,6 +78,10 @@ class Tenant(Base, TimestampMixin):
         DateTime(timezone=True), nullable=True
     )
 
+    # Daily generation limits (user-configurable via /api/me/config)
+    daily_short_videos: Mapped[int] = mapped_column(default=1, nullable=False)
+    daily_long_videos: Mapped[int] = mapped_column(default=1, nullable=False)
+
     # Relationships
     users: Mapped[list["User"]] = relationship(
         back_populates="tenant", cascade="all, delete-orphan"
