@@ -50,6 +50,11 @@ RUN groupadd -r app && useradd -r -g app -d /app -s /sbin/nologin app
 
 WORKDIR /app
 
+# Pre-create writable directories so the app (running as non-root) can write
+# data files even when no external volume is mounted.
+RUN mkdir -p /app/data/usage /app/data/posts_db /app/logs && \
+    chown -R app:app /app
+
 COPY --from=builder /venv /venv
 COPY --chown=app:app src ./src
 COPY --chown=app:app templates ./templates
