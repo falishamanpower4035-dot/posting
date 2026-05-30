@@ -23,7 +23,16 @@ class UnsplashProvider:
     name = "unsplash"
     is_free = True
 
-    def __init__(self, access_key: str, timeout: float = 30.0) -> None:
+    def __init__(
+        self,
+        access_key: str = "",
+        timeout: float = 30.0,
+        api_key: str = "",
+        **_ignore: object,
+    ) -> None:
+        # The credential form stores the key under `api_key` for every provider;
+        # accept it as an alias for `access_key` so Unsplash works the same way.
+        access_key = access_key or api_key
         if not access_key:
             raise ValueError("Unsplash access key required")
         self._client = httpx.Client(
