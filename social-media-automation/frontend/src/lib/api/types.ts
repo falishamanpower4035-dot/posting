@@ -44,6 +44,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/magic-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Magic Login
+         * @description Exchange a magic-link JWT (from email) for a long-lived session JWT.
+         *
+         *     This is how SaaS buyers sign in for the first time after subscribing
+         *     on Whop. They click the link in the welcome email which carries them
+         *     to /auth/magic on the frontend; the frontend POSTs the token here.
+         */
+        post: operations["magic_login_api_auth_magic_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -66,6 +90,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/webhooks/whop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Whop Webhook */
+        post: operations["whop_webhook_api_webhooks_whop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/me": {
         parameters: {
             query?: never;
@@ -77,6 +118,46 @@ export interface paths {
         get: operations["me_api_me_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Config
+         * @description Update daily video generation limits for this tenant.
+         */
+        patch: operations["update_config_api_me_config_patch"];
+        trace?: never;
+    };
+    "/api/me/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Change the current user's password.
+         */
+        post: operations["change_password_api_me_change_password_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -771,6 +852,20 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ChangePasswordRequest */
+        ChangePasswordRequest: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
+        };
+        /** ConfigUpdate */
+        ConfigUpdate: {
+            /** Daily Short Videos */
+            daily_short_videos: number;
+            /** Daily Long Videos */
+            daily_long_videos: number;
+        };
         /** CredentialsCreate */
         CredentialsCreate: {
             /**
@@ -875,6 +970,11 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MagicLoginRequest */
+        MagicLoginRequest: {
+            /** Token */
+            token: string;
+        };
         /** MeResponse */
         MeResponse: {
             /** User Id */
@@ -889,14 +989,10 @@ export interface components {
             tenant_name: string;
             /** Subscription Status */
             subscription_status: string;
-        };
-        /**
-         * MessageResponse
-         * @description Generic success/info envelope.
-         */
-        MessageResponse: {
-            /** Message */
-            message: string;
+            /** Daily Short Videos */
+            daily_short_videos: number;
+            /** Daily Long Videos */
+            daily_long_videos: number;
         };
         /**
          * NicheCreate
@@ -1477,7 +1573,10 @@ export interface components {
             email: string;
             /** Password */
             password: string;
-            /** Workspace Name */
+            /**
+             * Workspace Name
+             * @default
+             */
             workspace_name: string;
         };
         /** SocialAccountRead */
@@ -1695,6 +1794,19 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** MessageResponse */
+        sma__web__routers__me__MessageResponse: {
+            /** Message */
+            message: string;
+        };
+        /**
+         * MessageResponse
+         * @description Generic success/info envelope.
+         */
+        sma__web__schemas__common__MessageResponse: {
+            /** Message */
+            message: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1757,6 +1869,39 @@ export interface operations {
             };
         };
     };
+    magic_login_api_auth_magic_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MagicLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     signup_api_auth_signup_post: {
         parameters: {
             query?: never;
@@ -1790,6 +1935,28 @@ export interface operations {
             };
         };
     };
+    whop_webhook_api_webhooks_whop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     me_api_me_get: {
         parameters: {
             query?: never;
@@ -1806,6 +1973,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
+    update_config_api_me_config_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfigUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_password_api_me_change_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sma__web__routers__me__MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2498,7 +2731,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["sma__web__schemas__common__MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2529,7 +2762,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["sma__web__schemas__common__MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2785,7 +3018,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["sma__web__schemas__common__MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2977,7 +3210,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["sma__web__schemas__common__MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3203,7 +3436,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["sma__web__schemas__common__MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3234,7 +3467,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["sma__web__schemas__common__MessageResponse"];
                 };
             };
             /** @description Validation Error */
