@@ -148,30 +148,35 @@ def test_credentials(cred_id: int, user: CurrentUser) -> CredentialsTestResult:
         row = session.get(Credentials, cred_id)
         if row is None or row.tenant_id != user.tenant_id:
             raise HTTPException(status_code=404, detail="credentials not found")
+        # Capture plain values INSIDE the session — the ORM row becomes detached
+        # once the session closes, so reading row.* afterwards raises
+        # DetachedInstanceError. Pull everything we need into locals now.
+        provider_kind = row.provider_kind
+        provider_name = row.provider_name
         try:
             payload = decrypt_blob(row.encrypted_blob)
         except Exception as e:
             return CredentialsTestResult(
-                ok=False, message=f"decrypt failed: {e}", provider=row.provider_name
+                ok=False, message=f"decrypt failed: {e}", provider=provider_name
             )
 
     try:
-        if row.provider_kind == "llm":
-            provider = get_provider(row.provider_kind, row.provider_name, **payload)
+        if provider_kind == "llm":
+            provider = get_provider(provider_kind, provider_name, **payload)
             resp = provider.complete(
                 system="You are a test responder.",
                 user="Reply with the single word: ok",
-                model="gpt-4o-mini" if row.provider_name == "openai" else row.provider_name,
+                model="gpt-4o-mini" if provider_name == "openai" else provider_name,
                 temperature=0,
             )
             return CredentialsTestResult(
-                ok=True, message="LLM responded", provider=row.provider_name,
+                ok=True, message="LLM responded", provider=provider_name,
                 detail={"response": resp.text[:80]},
             )
-        if row.provider_kind == "image":
+        if provider_kind == "image":
             from pathlib import Path
 
-            provider = get_provider(row.provider_kind, row.provider_name, **payload)
+            provider = get_provider(provider_kind, provider_name, **payload)
             tmp = Path("data") / "creds_test"
             tmp.mkdir(parents=True, exist_ok=True)
             result = provider.generate(
@@ -181,16 +186,16 @@ def test_credentials(cred_id: int, user: CurrentUser) -> CredentialsTestResult:
             return CredentialsTestResult(
                 ok=ok,
                 message="image generated" if ok else "no image returned",
-                provider=row.provider_name,
+                provider=provider_name,
                 detail={"path": str(result.paths[0]) if result.paths else ""},
             )
         # For voice/music/social we accept "decrypted OK" as a pass for now.
         return CredentialsTestResult(
             ok=True,
-            message=f"decrypted successfully (no live test for kind {row.provider_kind!r})",
-            provider=row.provider_name,
+            message=f"decrypted successfully (no live test for kind {provider_kind!r})",
+            provider=provider_name,
         )
     except UnknownProvider as e:
-        return CredentialsTestResult(ok=False, message=str(e), provider=row.provider_name)
+        return CredentialsTestResult(ok=False, message=str(e), provider=provider_name)
     except Exception as e:
-        return CredentialsTestResult(ok=False, message=str(e), provider=row.provider_name)
+        return CredentialsTestResult(ok=False, message=str(e), provider=provider_name)
