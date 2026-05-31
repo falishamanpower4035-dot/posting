@@ -114,11 +114,15 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
 
         music_creds: dict | None = None
         if niche_cfg.music_enabled:
-            try:
-                music_creds = _load_credentials(session, "music", niche_cfg.music_provider)
-            except MissingCredentialsError:
-                # Music is optional — if not configured, run with music disabled.
-                music_creds = None
+            if niche_cfg.music_provider == "local":
+                # Bundled local tracks need no credentials.
+                music_creds = {}
+            else:
+                try:
+                    music_creds = _load_credentials(session, "music", niche_cfg.music_provider)
+                except MissingCredentialsError:
+                    # Music is optional — if not configured, run with music disabled.
+                    music_creds = None
 
     llm: LLMProvider = get_provider("llm", niche_cfg.llm_provider, **llm_creds)
     image: ImageProvider = get_provider("image", niche_cfg.image_provider, **image_creds)

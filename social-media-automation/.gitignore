@@ -53,6 +53,8 @@ data/*.db-shm
 *.jpeg
 *.png
 !docs/**/*.png
+# Bundled background-music tracks SHOULD be committed (they ship with the app).
+!assets/music/*.mp3
 !docs/**/*.jpg
 
 # Locks

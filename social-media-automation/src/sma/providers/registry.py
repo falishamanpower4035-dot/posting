@@ -28,6 +28,7 @@ _PROVIDER_PATHS: dict[ProviderKind, dict[str, str]] = {
     },
     "music": {
         "elevenlabs": "sma.providers.music.elevenlabs:ElevenLabsMusic",
+        "local": "sma.providers.music.local:LocalMusicProvider",
     },
     "social": {
         "instagram": "sma.providers.social.instagram:InstagramPoster",

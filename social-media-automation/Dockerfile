@@ -60,6 +60,7 @@ COPY --chown=app:app src ./src
 COPY --chown=app:app templates ./templates
 COPY --chown=app:app alembic.ini ./
 COPY --chown=app:app examples ./examples
+COPY --chown=app:app assets ./assets
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
