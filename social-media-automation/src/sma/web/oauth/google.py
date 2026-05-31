@@ -24,8 +24,8 @@ from sma.web.oauth.common import (
     OAuthConnectUser,
     callback_url,
     consume_state,
-    env_creds,
     frontend_redirect,
+    get_oauth_app_creds,
     issue_state,
     upsert_social_account,
 )
@@ -46,7 +46,7 @@ _SCOPES = [
 def connect_youtube(
     user: OAuthConnectUser, redirect_after: str | None = Query(None)
 ) -> RedirectResponse:
-    creds = env_creds("GOOGLE", "CLIENT_ID", "CLIENT_SECRET")
+    creds = get_oauth_app_creds(user.tenant_id, "youtube", "GOOGLE", "CLIENT_ID", "CLIENT_SECRET")
     state, _ = issue_state(user.tenant_id, "youtube", redirect_after)
     params = {
         "client_id": creds["client_id"],
@@ -73,7 +73,7 @@ def callback_youtube(
         return RedirectResponse(url=frontend_redirect("youtube", False, "no code"), status_code=302)
     state_row = consume_state(state, "youtube")
     tenant_id = state_row.tenant_id
-    creds = env_creds("GOOGLE", "CLIENT_ID", "CLIENT_SECRET")
+    creds = get_oauth_app_creds(tenant_id, "youtube", "GOOGLE", "CLIENT_ID", "CLIENT_SECRET")
 
     with httpx.Client(timeout=30.0) as client:
         r = client.post(_TOKEN_URL, data={

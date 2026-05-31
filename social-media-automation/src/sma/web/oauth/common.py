@@ -227,3 +227,68 @@ def env_creds(prefix: str, *names: str) -> dict[str, str]:
             ),
         )
     return creds
+
+
+# ─── Per-tenant OAuth app credentials (entered via the UI) ─────
+#
+# Each platform's OAuth *app* (client id/secret) is stored encrypted in the
+# Credentials table under provider_kind="oauth_app", provider_name=<platform>.
+# This lets each tenant bring their own OAuth app through the frontend instead
+# of the operator setting env vars. We fall back to env vars if no DB row.
+
+# (platform, payload-keys we expect, friendly env prefix for fallback)
+_OAUTH_APP_KEYS: dict[str, tuple[str, str]] = {
+    "youtube": ("client_id", "client_secret"),
+    "meta": ("app_id", "app_secret"),
+    "tiktok": ("client_key", "client_secret"),
+    "linkedin": ("client_id", "client_secret"),
+}
+
+
+def get_oauth_app_creds(tenant_id: int, platform: str, env_prefix: str, *env_names: str) -> dict[str, str]:
+    """Return the OAuth app credentials for a platform.
+
+    Resolution order:
+      1. Per-tenant row in Credentials (provider_kind='oauth_app', name=platform)
+      2. Environment variables (operator-wide fallback)
+
+    Raises HTTPException(503) with a UI-friendly message if neither is set.
+    """
+    from sma.db.crypto import decrypt_blob
+    from sma.db.models.credentials import Credentials
+
+    keys = _OAUTH_APP_KEYS.get(platform, env_names and tuple(n.lower() for n in env_names) or ())
+
+    SessionLocal = get_session_factory()
+    with SessionLocal() as session:
+        row = session.execute(
+            select(Credentials).where(
+                Credentials.provider_kind == "oauth_app",
+                Credentials.provider_name == platform,
+            ).execution_options(skip_tenant_filter=True).where(
+                Credentials.tenant_id == tenant_id
+            )
+        ).scalar_one_or_none()
+        if row is not None:
+            blob = decrypt_blob(row.encrypted_blob)
+            if all(blob.get(k) for k in keys):
+                return {k: str(blob[k]) for k in keys}
+
+    # Fall back to env vars.
+    creds: dict[str, str] = {}
+    missing: list[str] = []
+    for i, name in enumerate(env_names):
+        val = os.environ.get(f"{env_prefix}_{name}", "").strip()
+        key = keys[i] if i < len(keys) else name.lower()
+        if not val:
+            missing.append(name)
+        creds[key] = val
+    if missing:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"{platform} is not configured yet. Add your {platform} app "
+                f"Client ID and Secret on the Social Accounts page first."
+            ),
+        )
+    return creds

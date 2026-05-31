@@ -31,7 +31,7 @@ from sma.web.oauth.common import (
     OAuthConnectUser,
     callback_url,
     consume_state,
-    env_creds,
+    get_oauth_app_creds,
     issue_state,
     upsert_social_account,
 )
@@ -55,7 +55,7 @@ _SCOPES = [
 @router.get("/connect")
 def connect_meta(user: OAuthConnectUser, redirect_after: str | None = Query(None)) -> RedirectResponse:
     """Kick off the Meta OAuth flow."""
-    creds = env_creds("META", "APP_ID", "APP_SECRET")
+    creds = get_oauth_app_creds(user.tenant_id, "meta", "META", "APP_ID", "APP_SECRET")
     state, _ = issue_state(user.tenant_id, "meta", redirect_after)
     params = {
         "client_id": creds["app_id"],
@@ -77,7 +77,7 @@ def callback_meta(
         raise HTTPException(status_code=400, detail=f"Meta returned error: {error}")
     state_row = consume_state(state, "meta")
     tenant_id = state_row.tenant_id
-    creds = env_creds("META", "APP_ID", "APP_SECRET")
+    creds = get_oauth_app_creds(tenant_id, "meta", "META", "APP_ID", "APP_SECRET")
 
     with httpx.Client(timeout=30.0) as client:
         # 1. Short-lived user token

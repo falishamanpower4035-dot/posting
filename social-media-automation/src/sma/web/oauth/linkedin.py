@@ -22,9 +22,9 @@ from fastapi.responses import RedirectResponse
 
 from sma.web.oauth.common import (
     OAuthConnectUser,
+    get_oauth_app_creds,
     callback_url,
     consume_state,
-    env_creds,
     issue_state,
     upsert_social_account,
 )
@@ -47,7 +47,7 @@ _SCOPES = [
 def connect_linkedin(
     user: OAuthConnectUser, redirect_after: str | None = Query(None)
 ) -> RedirectResponse:
-    creds = env_creds("LINKEDIN", "CLIENT_ID", "CLIENT_SECRET")
+    creds = get_oauth_app_creds(user.tenant_id, "linkedin", "LINKEDIN", "CLIENT_ID", "CLIENT_SECRET")
     state, _ = issue_state(user.tenant_id, "linkedin", redirect_after)
     params = {
         "response_type": "code",
@@ -72,7 +72,7 @@ def callback_linkedin(
         )
     state_row = consume_state(state, "linkedin")
     tenant_id = state_row.tenant_id
-    creds = env_creds("LINKEDIN", "CLIENT_ID", "CLIENT_SECRET")
+    creds = get_oauth_app_creds(tenant_id, "linkedin", "LINKEDIN", "CLIENT_ID", "CLIENT_SECRET")
 
     with httpx.Client(timeout=30.0) as client:
         r = client.post(

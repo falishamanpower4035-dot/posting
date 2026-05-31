@@ -22,9 +22,9 @@ from fastapi.responses import RedirectResponse
 
 from sma.web.oauth.common import (
     OAuthConnectUser,
+    get_oauth_app_creds,
     callback_url,
     consume_state,
-    env_creds,
     issue_state,
     pkce_challenge,
     upsert_social_account,
@@ -47,7 +47,7 @@ _SCOPES = [
 def connect_tiktok(
     user: OAuthConnectUser, redirect_after: str | None = Query(None)
 ) -> RedirectResponse:
-    creds = env_creds("TIKTOK", "CLIENT_KEY", "CLIENT_SECRET")
+    creds = get_oauth_app_creds(user.tenant_id, "tiktok", "TIKTOK", "CLIENT_KEY", "CLIENT_SECRET")
     state, verifier = issue_state(user.tenant_id, "tiktok", redirect_after, with_pkce=True)
     challenge = pkce_challenge(verifier)  # type: ignore[arg-type]
     params = {
@@ -75,7 +75,7 @@ def callback_tiktok(
         )
     state_row = consume_state(state, "tiktok")
     tenant_id = state_row.tenant_id
-    creds = env_creds("TIKTOK", "CLIENT_KEY", "CLIENT_SECRET")
+    creds = get_oauth_app_creds(tenant_id, "tiktok", "TIKTOK", "CLIENT_KEY", "CLIENT_SECRET")
 
     with httpx.Client(timeout=30.0) as client:
         r = client.post(
