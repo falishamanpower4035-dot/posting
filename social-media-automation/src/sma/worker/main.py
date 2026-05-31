@@ -94,12 +94,20 @@ def main() -> int:
         logger.error(f"initial process_due_schedules failed: {e}")
     # Discover topics once at startup so a freshly deployed worker has a topic
     # pool to draw from immediately (RSS is free; news/AI cost is tiny). The
-    # 4-hourly schedule then keeps it fresh. auto_generate is left to its timed
-    # cycle so video generation doesn't fire on every restart.
+    # 4-hourly schedule then keeps it fresh.
     try:
         discover_topics_for_all_tenants()
     except Exception as e:
         logger.error(f"initial discover_topics failed: {e}")
+    # Then run one generation pass at startup. This is SAFE to do on every
+    # restart because auto_generate is bounded by the per-day limit AND the
+    # inter-post spacing gate — if today's quota is met or a post was made
+    # recently, it no-ops. This makes a fresh deploy productive immediately
+    # instead of waiting up to 15 min for the first timed cycle.
+    try:
+        auto_generate_for_all_tenants()
+    except Exception as e:
+        logger.error(f"initial auto_generate failed: {e}")
 
     logger.info("Scheduler started. Jobs:")
     for job in scheduler.get_jobs():
