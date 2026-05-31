@@ -83,19 +83,25 @@ def generate_background_music(
     output_path: Path,
     mood_hint: str | None = None,
 ) -> Path | None:
-    """Generates a music prompt via LLM, then calls the music provider."""
+    """Generates a music prompt via LLM (for generative providers), then calls
+    the music provider. Local/bundled providers ignore the prompt, so we skip
+    the LLM call entirely for them to save cost + latency."""
     if not niche.music_enabled:
         return None
-    prompt_template = render(
-        "music_prompt.j2", niche=niche, topic=topic, mood_hint=mood_hint or ""
-    )
-    resp = llm.complete(
-        system="You write music-generation prompts. Be specific about genre, tempo, instruments.",
-        user=prompt_template,
-        model=niche.llm_model,
-        temperature=0.7,
-    )
-    music_prompt = resp.text.strip()
+    provider_name = getattr(music, "name", "")
+    if provider_name == "local":
+        music_prompt = ""  # bundled tracks don't use a prompt
+    else:
+        prompt_template = render(
+            "music_prompt.j2", niche=niche, topic=topic, mood_hint=mood_hint or ""
+        )
+        resp = llm.complete(
+            system="You write music-generation prompts. Be specific about genre, tempo, instruments.",
+            user=prompt_template,
+            model=niche.llm_model,
+            temperature=0.7,
+        )
+        music_prompt = resp.text.strip()
     try:
         result = music.generate(
             prompt=music_prompt, duration_sec=duration_sec, output_path=output_path
