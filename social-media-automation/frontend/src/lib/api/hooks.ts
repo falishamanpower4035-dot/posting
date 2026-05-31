@@ -266,6 +266,36 @@ export function useDeleteSocial() {
   });
 }
 
+// OAuth app credentials (Client ID / Secret entered in the UI)
+export interface OAuthAppStatus {
+  platform: string;
+  label: string;
+  configured: boolean;
+  fields: string[];
+  console_url: string;
+  instructions: string;
+  redirect_uri: string;
+}
+
+export function useOAuthApps() {
+  return useQuery({
+    queryKey: ["oauth-apps"],
+    queryFn: () => api<OAuthAppStatus[]>("/api/social-accounts/oauth-apps/status"),
+  });
+}
+
+export function useSaveOAuthApp() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ platform, fields }: { platform: string; fields: Record<string, string> }) =>
+      api<{ message: string }>(`/api/social-accounts/oauth-apps/${platform}`, {
+        method: "PUT",
+        body: fields,
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["oauth-apps"] }),
+  });
+}
+
 // ─── Posts ─────────────────────────────────────────────────────────────────
 
 export type PostsList = Resp200<"/api/posts", "get">;
