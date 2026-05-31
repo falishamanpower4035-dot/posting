@@ -100,7 +100,18 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
         # Load credentials for every provider the niche references.
         llm_creds = _load_credentials(session, "llm", niche_cfg.llm_provider)
         image_creds = _load_credentials(session, "image", niche_cfg.image_provider)
-        voice_creds = _load_credentials(session, "voice", niche_cfg.voice_provider)
+
+        # Voice: openai_tts / dalle-style providers reuse the OpenAI LLM key, so
+        # if a dedicated voice credential isn't stored, fall back to the OpenAI
+        # key the tenant already has. Same for music providers that piggyback.
+        try:
+            voice_creds = _load_credentials(session, "voice", niche_cfg.voice_provider)
+        except MissingCredentialsError:
+            if niche_cfg.voice_provider == "openai_tts":
+                voice_creds = _load_credentials(session, "llm", "openai")
+            else:
+                raise
+
         music_creds: dict | None = None
         if niche_cfg.music_enabled:
             try:
