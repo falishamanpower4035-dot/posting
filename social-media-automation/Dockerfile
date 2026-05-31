@@ -60,15 +60,20 @@ COPY --chown=app:app src ./src
 COPY --chown=app:app templates ./templates
 COPY --chown=app:app alembic.ini ./
 COPY --chown=app:app examples ./examples
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENV PATH="/venv/bin:$PATH" \
     PYTHONPATH=/app/src \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-USER app
+# NOTE: we deliberately do NOT `USER app` here. The entrypoint starts as root
+# so it can chown the runtime-mounted volume, then drops to `app` itself.
 EXPOSE 8000
 
-# Default = web service. The worker service in railway.toml overrides this
-# with `python -m sma.worker.main`.
-CMD ["sh", "-c", "alembic upgrade head && uvicorn sma.web.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# The entrypoint fixes volume ownership then runs the command as the app user.
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+# Default = web service. The worker service overrides this with its start command.
+CMD ["alembic upgrade head && uvicorn sma.web.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
