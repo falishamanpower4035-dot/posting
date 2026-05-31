@@ -78,7 +78,9 @@ def run_pipeline_for_db(
 
     # 2) Build the PipelineContext from DB-stored niche + credentials
     ctx, niche_row = build_context_for_niche(niche_id)
-    length = video_length or niche_row.video_length_default
+    # Use ctx.niche.* (plain values) not niche_row.* — the ORM row is detached
+    # once build_context_for_niche's session closed.
+    length = video_length or ctx.niche.video_length_default
 
     # 3) Insert a Post row with GENERATING status so the UI can poll it.
     with get_db_session() as session:

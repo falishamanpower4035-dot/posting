@@ -92,6 +92,11 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
 
         niche_cfg = _row_to_niche_config(niche_row)
 
+        # Detach the row with all attributes loaded so callers can safely read
+        # niche_row.* after this session closes (avoids DetachedInstanceError).
+        session.refresh(niche_row)
+        session.expunge(niche_row)
+
         # Load credentials for every provider the niche references.
         llm_creds = _load_credentials(session, "llm", niche_cfg.llm_provider)
         image_creds = _load_credentials(session, "image", niche_cfg.image_provider)

@@ -71,7 +71,10 @@ def discover_topics_for_all_tenants() -> None:
 
 def _run_one_source(src_id: int, niche_id: int, kind: str, config: dict, tenant_id: int) -> None:
     ctx, niche_row = build_context_for_niche(niche_id)
-    source_obj = _source_for(kind, config, niche_row.language)
+    # Use ctx.niche.language (a plain value) rather than niche_row.language — the
+    # ORM row is detached once build_context_for_niche's session closed, so
+    # touching its attributes raises DetachedInstanceError.
+    source_obj = _source_for(kind, config, ctx.niche.language)
     candidates = source_obj.discover(ctx.niche, ctx.llm)
     if not candidates:
         logger.info(f"source {src_id} returned no candidates")
