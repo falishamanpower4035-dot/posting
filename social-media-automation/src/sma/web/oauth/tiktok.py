@@ -25,6 +25,7 @@ from sma.web.oauth.common import (
     get_oauth_app_creds,
     callback_url,
     consume_state,
+    frontend_redirect,
     issue_state,
     pkce_challenge,
     upsert_social_account,
@@ -64,15 +65,17 @@ def connect_tiktok(
 
 @router.get("/callback")
 def callback_tiktok(
-    code: str = Query(...),
+    code: str = Query(None),
     state: str = Query(...),
     error: str | None = Query(None),
     error_description: str | None = Query(None),
-) -> dict:
+) -> RedirectResponse:
     if error:
-        raise HTTPException(
-            status_code=400, detail=f"TikTok error: {error} — {error_description or ''}"
+        return RedirectResponse(
+            url=frontend_redirect("tiktok", False, error_description or error), status_code=302
         )
+    if not code:
+        return RedirectResponse(url=frontend_redirect("tiktok", False, "no code"), status_code=302)
     state_row = consume_state(state, "tiktok")
     tenant_id = state_row.tenant_id
     creds = get_oauth_app_creds(tenant_id, "tiktok", "TIKTOK", "CLIENT_KEY", "CLIENT_SECRET")
@@ -126,9 +129,4 @@ def callback_tiktok(
         },
         refresh_expires_at=expiry,
     )
-    return {
-        "ok": True,
-        "username": username,
-        "expires_at": expiry.isoformat(),
-        "redirect_after": state_row.redirect_after,
-    }
+    return RedirectResponse(url=frontend_redirect("tiktok", True), status_code=302)
