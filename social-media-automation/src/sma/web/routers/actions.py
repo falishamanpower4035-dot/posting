@@ -411,38 +411,46 @@ def run_automation_now(user: CurrentUser) -> MessageResponse:
     """
     from sma.db.models.tenant import Tenant
     from sma.db.models.topic import TopicSource as TopicSourceModel
+    from sma.db.session import tenant_scope
     from sma.worker.jobs.auto_generate import _auto_generate_for_tenant
     from sma.worker.jobs.discover_topics import _run_one_source
 
-    # Step 1: discovery for every enabled source in this tenant.
-    discovered_sources = 0
-    with get_db_session() as session:
-        srcs = (
-            session.query(TopicSourceModel)
-            .filter(TopicSourceModel.enabled.is_(True))
-            .all()
-        )
-        src_plan = [(s.id, s.niche_id, s.kind, dict(s.config_json or {})) for s in srcs]
+    tenant_id = user.tenant_id
 
-    for src_id, niche_id, kind, config in src_plan:
+    # The worker helpers below read the tenant ContextVar (via require_current_tenant).
+    # This sync endpoint may run on a threadpool worker where the dependency-set
+    # ContextVar doesn't propagate, so wrap the whole cycle in an explicit
+    # tenant_scope to guarantee the context is set on THIS thread.
+    with tenant_scope(tenant_id):
+        # Step 1: discovery for every enabled source in this tenant.
+        discovered_sources = 0
+        with get_db_session() as session:
+            srcs = (
+                session.query(TopicSourceModel)
+                .filter(TopicSourceModel.enabled.is_(True))
+                .all()
+            )
+            src_plan = [(s.id, s.niche_id, s.kind, dict(s.config_json or {})) for s in srcs]
+
+        for src_id, niche_id, kind, config in src_plan:
+            try:
+                _run_one_source(src_id, niche_id, kind, config, tenant_id)
+                discovered_sources += 1
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"topic discovery failed for source {src_id}: {e}"
+                ) from e
+
+        # Step 2 + 3: generate + schedule, honoring the tenant's daily limits.
+        with get_db_session() as session:
+            tenant = session.get(Tenant, tenant_id)
+            daily_short = tenant.daily_short_videos if tenant else 1
+            daily_long = tenant.daily_long_videos if tenant else 0
+
         try:
-            _run_one_source(src_id, niche_id, kind, config, user.tenant_id)
-            discovered_sources += 1
+            _auto_generate_for_tenant(tenant_id, daily_short, daily_long)
         except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"topic discovery failed for source {src_id}: {e}"
-            ) from e
-
-    # Step 2 + 3: generate + schedule, honoring the tenant's daily limits.
-    with get_db_session() as session:
-        tenant = session.get(Tenant, user.tenant_id)
-        daily_short = tenant.daily_short_videos if tenant else 1
-        daily_long = tenant.daily_long_videos if tenant else 0
-
-    try:
-        _auto_generate_for_tenant(user.tenant_id, daily_short, daily_long)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"auto-generate failed: {e}") from e
+            raise HTTPException(status_code=500, detail=f"auto-generate failed: {e}") from e
 
     return MessageResponse(
         message=(
