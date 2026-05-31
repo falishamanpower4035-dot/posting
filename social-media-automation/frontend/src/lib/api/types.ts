@@ -692,6 +692,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/automation/run-now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run the full autonomous cycle once now: discover topics → generate videos → schedule.
+         * @description Kick the whole pipeline synchronously for THIS tenant.
+         *
+         *     Useful for first-time setup and testing instead of waiting for the worker's
+         *     timed cycle. Steps:
+         *       1. Run every enabled topic source (discover + score new Topics).
+         *       2. Auto-generate videos from the best unused topics, up to the daily limit.
+         *       3. Auto-schedule each generated post to connected platforms.
+         */
+        post: operations["run_automation_now_api_automation_run_now_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/schedules/{sched_id}/mark-done": {
         parameters: {
             query?: never;
@@ -3446,6 +3472,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_automation_now_api_automation_run_now_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sma__web__schemas__common__MessageResponse"];
                 };
             };
         };

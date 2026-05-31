@@ -117,6 +117,21 @@ export function useChangePassword() {
   });
 }
 
+// ─── Automation ──────────────────────────────────────────────────────────────
+
+export function useRunAutomation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      api<{ message: string }>("/api/automation/run-now", { method: "POST" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["posts"] });
+      qc.invalidateQueries({ queryKey: ["topics"] });
+      qc.invalidateQueries({ queryKey: ["schedules"] });
+    },
+  });
+}
+
 // ─── Niches ────────────────────────────────────────────────────────────────
 
 export type NichesList = Resp200<"/api/niches", "get">;

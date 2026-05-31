@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, FileText, Sparkles, Wallet } from "lucide-react";
+import { Calendar, FileText, Play, Sparkles, Wallet } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMe, useNiches, usePosts, useSchedules, useUsageSummary } from "@/lib/api/hooks";
+import { useMe, useNiches, usePosts, useRunAutomation, useSchedules, useUsageSummary } from "@/lib/api/hooks";
 import { formatCurrency, formatRelativeDate } from "@/lib/utils";
 
 export default function DashboardPage() {
@@ -14,20 +15,47 @@ export default function DashboardPage() {
   const posts = usePosts();
   const scheduled = useSchedules({ status: "pending" });
   const usage = useUsageSummary();
+  const runAutomation = useRunAutomation();
 
   const totalPosts = posts.data?.meta.total ?? 0;
   const queuedCount = scheduled.data?.meta.total ?? 0;
   const monthCost = usage.data?.total_cost_usd ?? 0;
   const monthLabel = usage.data?.month ?? "—";
 
+  function onRunNow() {
+    toast.info("Running automation… this can take a minute while videos generate.");
+    runAutomation.mutate(undefined, {
+      onSuccess: (d) => toast.success(d.message, { duration: 12_000 }),
+      onError: (err) => toast.error(err instanceof Error ? err.message : "Automation failed", { duration: 12_000 }),
+    });
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {me.data ? `Workspace: ${me.data.tenant_name}` : "Loading…"}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {me.data ? `Workspace: ${me.data.tenant_name}` : "Loading…"}
+          </p>
+        </div>
+        <Button onClick={onRunNow} disabled={runAutomation.isPending}>
+          <Play className="h-4 w-4" />
+          {runAutomation.isPending ? "Running…" : "Run automation now"}
+        </Button>
       </div>
+
+      <Card className="border-blue-100 bg-blue-50/50">
+        <CardContent className="py-4">
+          <p className="text-sm text-slate-700">
+            <span className="font-semibold">How autonomous posting works:</span> the worker discovers
+            topics from your Topic Sources every 30 min, generates up to your daily limit of short/long
+            videos every 15 min, and posts scheduled videos every minute. Set your daily limits in{" "}
+            <Link href="/settings" className="font-medium text-blue-600 hover:underline">Settings</Link>.
+            Use <span className="font-medium">Run automation now</span> to trigger one full cycle immediately.
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Tile
