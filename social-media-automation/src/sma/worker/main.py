@@ -4,8 +4,9 @@ Run locally:
     python -m sma.worker.main
 
 On Railway / Render this is the entry-point for the `worker` service.
-Three jobs run in-process:
+Four jobs run in-process:
   - process_scheduled_posts:  every 60 seconds
+  - auto_generate_videos:     every 15 minutes
   - discover_topics:          every 30 minutes
   - refresh_oauth_tokens:     every hour
 """
@@ -22,6 +23,7 @@ from loguru import logger
 
 from sma import __version__
 from sma.config import get_settings
+from sma.worker.jobs.auto_generate import auto_generate_for_all_tenants
 from sma.worker.jobs.discover_topics import discover_topics_for_all_tenants
 from sma.worker.jobs.process_schedules import process_due_schedules
 from sma.worker.jobs.refresh_tokens import refresh_due_tokens
@@ -43,6 +45,14 @@ def _build_scheduler() -> BlockingScheduler:
         IntervalTrigger(minutes=30),
         id="discover_topics",
         max_instances=1,
+        coalesce=True,
+        misfire_grace_time=600,
+    )
+    scheduler.add_job(
+        auto_generate_for_all_tenants,
+        IntervalTrigger(minutes=15),
+        id="auto_generate_videos",
+        max_instances=1,         # video gen is heavy — never overlap
         coalesce=True,
         misfire_grace_time=600,
     )
@@ -82,8 +92,9 @@ def main() -> int:
         process_due_schedules()
     except Exception as e:
         logger.error(f"initial process_due_schedules failed: {e}")
-    # Don't run discover_topics at startup — it makes API calls and could be
-    # expensive on every restart. Let the schedule pick it up.
+    # Don't run discover_topics or auto_generate at startup — they make API
+    # calls (and generate videos) and could be expensive on every restart.
+    # Let the schedule pick them up.
 
     logger.info("Scheduler started. Jobs:")
     for job in scheduler.get_jobs():

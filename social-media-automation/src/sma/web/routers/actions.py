@@ -396,6 +396,64 @@ def run_topic_source_now(src_id: int, user: CurrentUser) -> MessageResponse:
 
 
 @router.post(
+    "/automation/run-now",
+    response_model=MessageResponse,
+    summary="Run the full autonomous cycle once now: discover topics → generate videos → schedule.",
+)
+def run_automation_now(user: CurrentUser) -> MessageResponse:
+    """Kick the whole pipeline synchronously for THIS tenant.
+
+    Useful for first-time setup and testing instead of waiting for the worker's
+    timed cycle. Steps:
+      1. Run every enabled topic source (discover + score new Topics).
+      2. Auto-generate videos from the best unused topics, up to the daily limit.
+      3. Auto-schedule each generated post to connected platforms.
+    """
+    from sma.db.models.tenant import Tenant
+    from sma.db.models.topic import TopicSource as TopicSourceModel
+    from sma.worker.jobs.auto_generate import _auto_generate_for_tenant
+    from sma.worker.jobs.discover_topics import _run_one_source
+
+    # Step 1: discovery for every enabled source in this tenant.
+    discovered_sources = 0
+    with get_db_session() as session:
+        srcs = (
+            session.query(TopicSourceModel)
+            .filter(TopicSourceModel.enabled.is_(True))
+            .all()
+        )
+        src_plan = [(s.id, s.niche_id, s.kind, dict(s.config_json or {})) for s in srcs]
+
+    for src_id, niche_id, kind, config in src_plan:
+        try:
+            _run_one_source(src_id, niche_id, kind, config, user.tenant_id)
+            discovered_sources += 1
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"topic discovery failed for source {src_id}: {e}"
+            ) from e
+
+    # Step 2 + 3: generate + schedule, honoring the tenant's daily limits.
+    with get_db_session() as session:
+        tenant = session.get(Tenant, user.tenant_id)
+        daily_short = tenant.daily_short_videos if tenant else 1
+        daily_long = tenant.daily_long_videos if tenant else 0
+
+    try:
+        _auto_generate_for_tenant(user.tenant_id, daily_short, daily_long)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"auto-generate failed: {e}") from e
+
+    return MessageResponse(
+        message=(
+            f"Automation cycle complete: ran {discovered_sources} topic source(s), "
+            f"then generated + scheduled up to {daily_short} short / {daily_long} long video(s). "
+            f"Check the Posts page."
+        )
+    )
+
+
+@router.post(
     "/schedules/{sched_id}/mark-done",
     response_model=MessageResponse,
     summary="Manually mark a schedule as DONE (operator override).",
