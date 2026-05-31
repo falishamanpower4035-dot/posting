@@ -42,11 +42,11 @@ def _build_scheduler() -> BlockingScheduler:
     )
     scheduler.add_job(
         discover_topics_for_all_tenants,
-        IntervalTrigger(minutes=30),
+        IntervalTrigger(hours=4),
         id="discover_topics",
         max_instances=1,
         coalesce=True,
-        misfire_grace_time=600,
+        misfire_grace_time=1800,
     )
     scheduler.add_job(
         auto_generate_for_all_tenants,
@@ -92,9 +92,14 @@ def main() -> int:
         process_due_schedules()
     except Exception as e:
         logger.error(f"initial process_due_schedules failed: {e}")
-    # Don't run discover_topics or auto_generate at startup — they make API
-    # calls (and generate videos) and could be expensive on every restart.
-    # Let the schedule pick them up.
+    # Discover topics once at startup so a freshly deployed worker has a topic
+    # pool to draw from immediately (RSS is free; news/AI cost is tiny). The
+    # 4-hourly schedule then keeps it fresh. auto_generate is left to its timed
+    # cycle so video generation doesn't fire on every restart.
+    try:
+        discover_topics_for_all_tenants()
+    except Exception as e:
+        logger.error(f"initial discover_topics failed: {e}")
 
     logger.info("Scheduler started. Jobs:")
     for job in scheduler.get_jobs():

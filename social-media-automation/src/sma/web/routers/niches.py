@@ -12,12 +12,49 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
 
 from sma.db.models.niche import Niche
+from sma.db.models.topic import TopicSource
 from sma.db.session import get_db_session
 from sma.web.auth.dependencies import CurrentUser
 from sma.web.schemas.common import Page, PageMeta
 from sma.web.schemas.niche import NicheCreate, NicheRead, NicheUpdate
 
 router = APIRouter(prefix="/api/niches", tags=["niches"])
+
+# Google News RSS is free + unlimited. We build a search query from the niche
+# so every new niche gets an autonomous news source with zero manual setup.
+_GOOGLE_NEWS_RSS = "https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
+
+
+def _build_news_query(niche: Niche) -> str:
+    """Derive a Google News search query from the niche's pillars (or name)."""
+    import urllib.parse
+
+    pillars = [p.split("(")[0].strip() for p in (niche.content_pillars or []) if p.strip()]
+    terms = pillars[:4] if pillars else [niche.name]
+    # OR the pillars together so the feed is broad but on-topic.
+    raw = " OR ".join(f'"{t}"' for t in terms)
+    return urllib.parse.quote(raw)
+
+
+def _seed_rss_source(session, niche: Niche) -> None:
+    """Auto-create an enabled RSS topic source for a new niche (idempotent)."""
+    existing = session.execute(
+        select(TopicSource).where(
+            TopicSource.niche_id == niche.id, TopicSource.kind == "rss"
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        return
+    feed_url = _GOOGLE_NEWS_RSS.format(query=_build_news_query(niche))
+    session.add(
+        TopicSource(
+            tenant_id=niche.tenant_id,
+            niche_id=niche.id,
+            kind="rss",
+            config_json={"feed_urls": [feed_url], "items_per_feed": 10},
+            enabled=True,
+        )
+    )
 
 
 @router.get("", response_model=Page[NicheRead])
@@ -42,6 +79,10 @@ def create_niche(payload: NicheCreate, user: CurrentUser) -> NicheRead:
     with get_db_session() as session:
         niche = Niche(tenant_id=user.tenant_id, **payload.model_dump())
         session.add(niche)
+        session.flush()
+        # Auto-seed a free Google News RSS source so the niche is autonomous
+        # immediately — no manual Topic Source setup needed.
+        _seed_rss_source(session, niche)
         session.flush()
         session.refresh(niche)
         return NicheRead.model_validate(niche)

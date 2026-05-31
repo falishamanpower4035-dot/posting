@@ -2,16 +2,13 @@
 
 import {
   Calendar,
-  CreditCard,
   FileText,
   Key,
   LayoutDashboard,
   LogOut,
   Newspaper,
-  Radio,
   Settings,
   Share2,
-  Sliders,
   Sparkles,
   Wallet,
 } from "lucide-react";
@@ -27,12 +24,9 @@ const NAV = [
   { href: "/keys", label: "API Keys", icon: Key },
   { href: "/socials", label: "Social Accounts", icon: Share2 },
   { href: "/topics", label: "Topics", icon: Newspaper },
-  { href: "/sources", label: "Topic Sources", icon: Radio },
   { href: "/posts", label: "Posts", icon: FileText },
   { href: "/schedule", label: "Schedule", icon: Calendar },
-  { href: "/rules", label: "Posting Rules", icon: Sliders },
   { href: "/usage", label: "Cost & Usage", icon: Wallet },
-  { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

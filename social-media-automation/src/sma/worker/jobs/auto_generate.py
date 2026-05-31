@@ -88,6 +88,27 @@ def _count_today(session, tenant_id: int, video_length: str) -> int:
     )
 
 
+def _minutes_since_last_post(session, tenant_id: int, video_length: str) -> float | None:
+    """Minutes since the most recent generated post of this length, or None if never."""
+    last = session.execute(
+        select(func.max(Post.generated_at))
+        .where(
+            Post.tenant_id == tenant_id,
+            Post.video_length == video_length,
+            Post.generated_at.isnot(None),
+            Post.status.in_(
+                [PostStatus.READY.value, PostStatus.SCHEDULED.value, PostStatus.POSTED.value]
+            ),
+        )
+        .execution_options(skip_tenant_filter=True)
+    ).scalar()
+    if last is None:
+        return None
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - last).total_seconds() / 60.0
+
+
 def _auto_generate_for_tenant(tenant_id: int, daily_short: int, daily_long: int) -> None:
     SessionLocal = get_session_factory()
 
@@ -104,6 +125,8 @@ def _auto_generate_for_tenant(tenant_id: int, daily_short: int, daily_long: int)
         # Today's counts per length.
         short_today = _count_today(session, tenant_id, "short")
         long_today = _count_today(session, tenant_id, "long")
+        short_gap = _minutes_since_last_post(session, tenant_id, "short")
+        long_gap = _minutes_since_last_post(session, tenant_id, "long")
 
         # Which connected platforms are available?
         active_platforms = {
@@ -118,18 +141,39 @@ def _auto_generate_for_tenant(tenant_id: int, daily_short: int, daily_long: int)
             f"tenant {tenant_id}: no connected social accounts — generating but not scheduling"
         )
 
-    # Build a work plan: (length, remaining quota).
+    # Spread posts evenly across the day. With daily_short=3 that's one every
+    # ~8h. We allow a small head-start (90% of the slot) so clock jitter doesn't
+    # push a post past midnight and waste the daily quota.
+    def _slot_minutes(per_day: int) -> float:
+        return (24 * 60) / per_day * 0.9 if per_day > 0 else 0.0
+
+    # Build a work plan: (length, remaining quota), honoring spacing.
     plan: list[tuple[str, int]] = []
     short_remaining = max(0, daily_short - short_today)
     long_remaining = max(0, daily_long - long_today)
+
     if short_remaining > 0:
-        plan.append(("short", min(short_remaining, _MAX_PER_RUN)))
+        slot = _slot_minutes(daily_short)
+        if short_gap is None or short_gap >= slot:
+            plan.append(("short", _MAX_PER_RUN))
+        else:
+            logger.debug(
+                f"tenant {tenant_id}: short post spacing not met "
+                f"({short_gap:.0f}/{slot:.0f} min) — waiting"
+            )
     if long_remaining > 0:
-        plan.append(("long", min(long_remaining, _MAX_PER_RUN)))
+        slot = _slot_minutes(daily_long)
+        if long_gap is None or long_gap >= slot:
+            plan.append(("long", _MAX_PER_RUN))
+        else:
+            logger.debug(
+                f"tenant {tenant_id}: long post spacing not met "
+                f"({long_gap:.0f}/{slot:.0f} min) — waiting"
+            )
 
     if not plan:
         logger.debug(
-            f"tenant {tenant_id}: daily limits reached "
+            f"tenant {tenant_id}: nothing to do "
             f"(short {short_today}/{daily_short}, long {long_today}/{daily_long})"
         )
         return
