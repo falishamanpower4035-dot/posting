@@ -127,7 +127,7 @@ def run_pipeline(
             output_path=video_path,
             hook_text=plan.hook_text,
         )
-        video_duration = video_duration
+        video_duration = video_result.duration_sec
 
     # 5. Thumbnail
     thumbnail_path = post_dir / "thumbnail.jpg"
