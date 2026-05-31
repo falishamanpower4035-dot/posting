@@ -185,6 +185,29 @@ export function useDeleteNiche() {
   });
 }
 
+// AI niche drafting — turn a free-text business description into a structured niche.
+export interface NicheDraft {
+  name: string;
+  description: string;
+  target_audience: string;
+  tone: string;
+  content_pillars: string[];
+  forbidden_topics: string[];
+  hashtag_seeds: string[];
+  cta: string;
+  news_search_query: string;
+}
+
+export function useDraftNiche() {
+  return useMutation({
+    mutationFn: (business_description: string) =>
+      api<NicheDraft>("/api/niches/draft-from-description", {
+        method: "POST",
+        body: { business_description },
+      }),
+  });
+}
+
 // ─── Credentials ───────────────────────────────────────────────────────────
 
 export type CredentialsList = Resp200<"/api/credentials", "get">;
