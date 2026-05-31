@@ -20,8 +20,8 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
-from sma.web.auth.dependencies import CurrentUser
 from sma.web.oauth.common import (
+    OAuthConnectUser,
     callback_url,
     consume_state,
     env_creds,
@@ -45,7 +45,7 @@ _SCOPES = [
 
 @router.get("/connect")
 def connect_tiktok(
-    user: CurrentUser, redirect_after: str | None = Query(None)
+    user: OAuthConnectUser, redirect_after: str | None = Query(None)
 ) -> RedirectResponse:
     creds = env_creds("TIKTOK", "CLIENT_KEY", "CLIENT_SECRET")
     state, verifier = issue_state(user.tenant_id, "tiktok", redirect_after, with_pkce=True)

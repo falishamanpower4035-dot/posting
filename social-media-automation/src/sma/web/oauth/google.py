@@ -20,11 +20,12 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
-from sma.web.auth.dependencies import CurrentUser
 from sma.web.oauth.common import (
+    OAuthConnectUser,
     callback_url,
     consume_state,
     env_creds,
+    frontend_redirect,
     issue_state,
     upsert_social_account,
 )
@@ -43,7 +44,7 @@ _SCOPES = [
 
 @router.get("/connect")
 def connect_youtube(
-    user: CurrentUser, redirect_after: str | None = Query(None)
+    user: OAuthConnectUser, redirect_after: str | None = Query(None)
 ) -> RedirectResponse:
     creds = env_creds("GOOGLE", "CLIENT_ID", "CLIENT_SECRET")
     state, _ = issue_state(user.tenant_id, "youtube", redirect_after)
@@ -62,12 +63,14 @@ def connect_youtube(
 
 @router.get("/callback")
 def callback_youtube(
-    code: str = Query(...),
+    code: str = Query(None),
     state: str = Query(...),
     error: str | None = Query(None),
-) -> dict:
+) -> RedirectResponse:
     if error:
-        raise HTTPException(status_code=400, detail=f"Google returned error: {error}")
+        return RedirectResponse(url=frontend_redirect("youtube", False, error), status_code=302)
+    if not code:
+        return RedirectResponse(url=frontend_redirect("youtube", False, "no code"), status_code=302)
     state_row = consume_state(state, "youtube")
     tenant_id = state_row.tenant_id
     creds = env_creds("GOOGLE", "CLIENT_ID", "CLIENT_SECRET")
@@ -120,9 +123,4 @@ def callback_youtube(
         },
         refresh_expires_at=expiry,
     )
-    return {
-        "ok": True,
-        "channel_title": channel_title,
-        "expires_at": expiry.isoformat(),
-        "redirect_after": state_row.redirect_after,
-    }
+    return RedirectResponse(url=frontend_redirect("youtube", True), status_code=302)

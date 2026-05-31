@@ -16,16 +16,60 @@ import base64
 import hashlib
 import os
 import secrets
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
-from fastapi import HTTPException
+from fastapi import Depends, Header, HTTPException, Query
 from loguru import logger
 from sqlalchemy import select
 
 from sma.db.crypto import encrypt_blob
 from sma.db.models.oauth_state import OAuthState
 from sma.db.models.social_account import SocialAccount
-from sma.db.session import get_session_factory
+from sma.db.session import get_session_factory, set_current_tenant
+from sma.web.auth.jwt import InvalidToken, decode_token
+
+
+@dataclass
+class OAuthUser:
+    user_id: int
+    tenant_id: int
+    role: str
+
+
+def oauth_connect_user(
+    token: Annotated[str | None, Query()] = None,
+    authorization: Annotated[str | None, Header()] = None,
+) -> OAuthUser:
+    """Resolve the user for an OAuth /connect redirect.
+
+    Browser navigations to /connect can't send an Authorization header, so we
+    also accept the JWT as a ?token= query param. The frontend appends it.
+    """
+    # Prefer the header if present (e.g. programmatic calls), else the query param.
+    raw = None
+    if authorization and authorization.lower().startswith("bearer "):
+        raw = authorization[7:].strip()
+    if not raw:
+        raw = token
+    if not raw:
+        raise HTTPException(status_code=401, detail="missing token (pass ?token=<jwt>)")
+    try:
+        payload = decode_token(raw)
+    except InvalidToken as e:
+        raise HTTPException(status_code=401, detail=f"invalid token: {e}") from e
+
+    tenant_id = int(payload["tenant_id"])
+    set_current_tenant(tenant_id)
+    return OAuthUser(
+        user_id=int(payload["sub"]),
+        tenant_id=tenant_id,
+        role=str(payload["role"]),
+    )
+
+
+OAuthConnectUser = Annotated[OAuthUser, Depends(oauth_connect_user)]
 
 
 def get_base_url() -> str:
@@ -35,6 +79,22 @@ def get_base_url() -> str:
 
 def callback_url(platform: str) -> str:
     return f"{get_base_url()}/api/oauth/{platform}/callback"
+
+
+def frontend_base_url() -> str:
+    """Public URL of the Next.js frontend, for post-OAuth redirects back to the UI."""
+    return os.environ.get(
+        "FRONTEND_BASE_URL",
+        os.environ.get("NEXT_PUBLIC_API_URL", "http://localhost:3100"),
+    ).rstrip("/")
+
+
+def frontend_redirect(platform: str, ok: bool, detail: str = "") -> str:
+    """Build a URL back to the frontend /socials page with a status query."""
+    from urllib.parse import urlencode
+
+    q = {"connected": platform if ok else "", "error": "" if ok else (detail or "failed")}
+    return f"{frontend_base_url()}/socials?{urlencode(q)}"
 
 
 # ─── State + PKCE ──────────────────────────────────────────────

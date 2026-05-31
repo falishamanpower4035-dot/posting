@@ -20,8 +20,8 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
-from sma.web.auth.dependencies import CurrentUser
 from sma.web.oauth.common import (
+    OAuthConnectUser,
     callback_url,
     consume_state,
     env_creds,
@@ -45,7 +45,7 @@ _SCOPES = [
 
 @router.get("/connect")
 def connect_linkedin(
-    user: CurrentUser, redirect_after: str | None = Query(None)
+    user: OAuthConnectUser, redirect_after: str | None = Query(None)
 ) -> RedirectResponse:
     creds = env_creds("LINKEDIN", "CLIENT_ID", "CLIENT_SECRET")
     state, _ = issue_state(user.tenant_id, "linkedin", redirect_after)

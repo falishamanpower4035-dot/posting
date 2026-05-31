@@ -27,8 +27,8 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
-from sma.web.auth.dependencies import CurrentUser
 from sma.web.oauth.common import (
+    OAuthConnectUser,
     callback_url,
     consume_state,
     env_creds,
@@ -53,7 +53,7 @@ _SCOPES = [
 
 
 @router.get("/connect")
-def connect_meta(user: CurrentUser, redirect_after: str | None = Query(None)) -> RedirectResponse:
+def connect_meta(user: OAuthConnectUser, redirect_after: str | None = Query(None)) -> RedirectResponse:
     """Kick off the Meta OAuth flow."""
     creds = env_creds("META", "APP_ID", "APP_SECRET")
     state, _ = issue_state(user.tenant_id, "meta", redirect_after)

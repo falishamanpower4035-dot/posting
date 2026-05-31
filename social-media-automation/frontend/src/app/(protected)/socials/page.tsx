@@ -1,6 +1,8 @@
 "use client";
 
 import { Camera, ExternalLink, Music2, Trash2, Tv, Users } from "lucide-react";
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,8 +20,32 @@ const PLATFORMS = [
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
 
 export default function SocialsPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
+      <SocialsInner />
+    </Suspense>
+  );
+}
+
+function SocialsInner() {
   const socials = useSocials();
   const del = useDeleteSocial();
+  const searchParams = useSearchParams();
+
+  // Show a toast when we return from an OAuth callback (?connected=youtube or ?error=...).
+  useEffect(() => {
+    const connected = searchParams.get("connected");
+    const error = searchParams.get("error");
+    if (connected) {
+      toast.success(`${connected} connected!`);
+      socials.refetch();
+      window.history.replaceState({}, "", "/socials");
+    } else if (error) {
+      toast.error(`Connection failed: ${error}`);
+      window.history.replaceState({}, "", "/socials");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   function startConnect(platform: string) {
     const token = getToken();
@@ -27,16 +53,10 @@ export default function SocialsPage() {
       toast.error("Sign in first");
       return;
     }
-    // OAuth /connect endpoints require auth — open in a popup with the token as
-    // a query param (the backend currently expects Authorization header; in a
-    // future iteration we'll support a short-lived ?session= param).
-    // For now we send the user to the connect URL directly. The browser will
-    // include cookies but not Authorization. For local dev, the backend can be
-    // tested by hitting the URL with a tool like httpie + Authorization header.
-    // Better UX is added below: redirect to the connect URL via a backend
-    // helper that sets a short cookie, OR open in a popup with sessionStorage.
+    // The /connect endpoint accepts the JWT as a ?token= query param because a
+    // full-page browser redirect can't send an Authorization header.
     toast.info("Redirecting to " + platform + "…");
-    window.location.href = `${API_URL}/api/oauth/${platform}/connect`;
+    window.location.href = `${API_URL}/api/oauth/${platform}/connect?token=${encodeURIComponent(token)}`;
   }
 
   function platformIcon(name: string) {
