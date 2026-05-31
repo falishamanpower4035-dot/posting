@@ -189,4 +189,7 @@ def run_pipeline_for_db(
 
         session.commit()
         session.refresh(post)
+        # Detach with all attributes loaded so callers can read post.* after this
+        # session closes (avoids DetachedInstanceError in worker / auto_generate).
+        session.expunge(post)
         return post
