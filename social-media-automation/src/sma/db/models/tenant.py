@@ -79,8 +79,8 @@ class Tenant(Base, TimestampMixin):
     )
 
     # Daily generation limits (user-configurable via /api/me/config)
-    daily_short_videos: Mapped[int] = mapped_column(default=1, nullable=False)
-    daily_long_videos: Mapped[int] = mapped_column(default=1, nullable=False)
+    daily_short_videos: Mapped[int] = mapped_column(default=3, nullable=False)
+    daily_long_videos: Mapped[int] = mapped_column(default=0, nullable=False)
 
     # Relationships
     users: Mapped[list["User"]] = relationship(

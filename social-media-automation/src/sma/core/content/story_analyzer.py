@@ -40,6 +40,23 @@ class StoryAnalysisError(Exception):
     pass
 
 
+# Cost control: the article body is only a seed for the script, not read aloud
+# verbatim. Cap how much we send to the LLM so a long article doesn't inflate
+# token cost. ~1200 chars is plenty of context to write a 30-50s script.
+MAX_TOPIC_CONTENT_CHARS = 1200
+
+
+def _clip_topic_content(topic: Topic) -> Topic:
+    """Return a copy of the topic with content clipped to control token cost."""
+    if len(topic.content or "") <= MAX_TOPIC_CONTENT_CHARS:
+        return topic
+    import copy
+
+    clipped = copy.copy(topic)
+    clipped.content = topic.content[:MAX_TOPIC_CONTENT_CHARS].rsplit(" ", 1)[0] + "…"
+    return clipped
+
+
 def analyze_story(
     topic: Topic,
     niche: NicheConfig,
@@ -47,7 +64,9 @@ def analyze_story(
     video_length: VideoLength | None = None,
 ) -> StoryPlan:
     length = video_length or niche.video_length_default
-    prompt = render("story_analysis.j2", niche=niche, topic=topic, video_length=length)
+    prompt = render(
+        "story_analysis.j2", niche=niche, topic=_clip_topic_content(topic), video_length=length
+    )
 
     resp = llm.complete(
         system="You design vertical-video production plans. Return only valid JSON.",

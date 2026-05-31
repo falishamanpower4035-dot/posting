@@ -21,10 +21,10 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     with op.batch_alter_table("tenants", schema=None) as batch_op:
         batch_op.add_column(
-            sa.Column("daily_short_videos", sa.Integer(), nullable=False, server_default="1")
+            sa.Column("daily_short_videos", sa.Integer(), nullable=False, server_default="3")
         )
         batch_op.add_column(
-            sa.Column("daily_long_videos", sa.Integer(), nullable=False, server_default="1")
+            sa.Column("daily_long_videos", sa.Integer(), nullable=False, server_default="0")
         )
 
 
