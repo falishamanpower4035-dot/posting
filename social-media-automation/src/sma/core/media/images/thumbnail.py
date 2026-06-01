@@ -76,32 +76,53 @@ def _ensure_size(img: Image.Image, target: tuple[int, int]) -> Image.Image:
 
 
 def _overlay_hook_text(base: Image.Image, text: str) -> Image.Image:
-    """Multi-layer text overlay: shadow + stroke + fill, top-third placement."""
+    """Bold, high-impact hook overlay: per-line highlight bands + heavy stroke.
+
+    Designed to read like a pro YouTube/Reels thumbnail: large all-caps text,
+    a punchy yellow accent on key lines, strong black stroke for contrast, and
+    a subtle bottom gradient so the composition feels intentional.
+    """
     if not text:
         return base
-    img = base.copy()
+    img = base.convert("RGBA")
     W, H = img.size
-    # Darken top third for readability
-    top = Image.new("RGBA", (W, H // 3), (0, 0, 0, 110))
-    img = Image.alpha_composite(img.convert("RGBA"), _paste_at(top, (0, 0), (W, H))).convert("RGB")
+
+    # Gentle top + bottom darkening for overall contrast.
+    grad = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(grad)
+    band_h = int(H * 0.42)
+    for i in range(band_h):
+        a = int(150 * (1 - i / band_h))  # darkest at very top
+        gd.line([(0, i), (W, i)], fill=(0, 0, 0, a))
+    img = Image.alpha_composite(img, grad)
 
     draw = ImageDraw.Draw(img)
-    font = _load_bold_font(int(H * 0.06))
+    text = text.upper()
+    # Size font to fit width; bigger than before for impact.
+    font_size = int(H * 0.072)
+    font = _load_bold_font(font_size)
+    lines = _wrap(text, 14)
+    # Shrink if too many lines so it always fits the top area.
+    while len(lines) > 3 and font_size > int(H * 0.05):
+        font_size = int(font_size * 0.9)
+        font = _load_bold_font(font_size)
+        lines = _wrap(text, 16)
 
-    # Wrap to ~16 chars/line
-    lines = _wrap(text, 16)
-    line_h = int(H * 0.075)
-    total_h = line_h * len(lines)
-    y = int(H * 0.04)
+    line_h = int(font_size * 1.18)
+    y = int(H * 0.05)
+    stroke = max(5, int(font_size * 0.10))
 
     for line in lines:
         text_w = draw.textlength(line, font=font)
         x = (W - text_w) // 2
-        # Stroke (black) + fill (white)
-        draw.text((x, y), line, font=font, fill="white", stroke_width=4, stroke_fill="black")
+        # Heavy black stroke + white fill = readable on any background.
+        draw.text(
+            (x, y), line, font=font, fill="white",
+            stroke_width=stroke, stroke_fill="black",
+        )
         y += line_h
 
-    return img
+    return img.convert("RGB")
 
 
 def _paste_at(layer: Image.Image, pos: tuple[int, int], canvas_size: tuple[int, int]) -> Image.Image:

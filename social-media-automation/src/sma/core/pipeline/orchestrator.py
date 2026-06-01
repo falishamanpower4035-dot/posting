@@ -129,14 +129,15 @@ def run_pipeline(
         )
         video_duration = video_result.duration_sec
 
-    # 5. Thumbnail
+    # 5. Thumbnail — use the dedicated thumbnail provider (e.g. Gemini Nano
+    # Banana) if configured, else fall back to the scene image provider.
     thumbnail_path = post_dir / "thumbnail.jpg"
     generate_thumbnail(
         topic=topic,
         niche=ctx.niche,
         hook_text=plan.hook_text,
         llm=ctx.llm,
-        image_provider=ctx.image,
+        image_provider=ctx.thumbnail_image or ctx.image,
         output_path=thumbnail_path,
         fallback_image=images.images[0],
         aspect_ratio="16:9" if length == "long" else "9:16",

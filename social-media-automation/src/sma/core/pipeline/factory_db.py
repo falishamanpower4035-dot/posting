@@ -46,6 +46,7 @@ def _row_to_niche_config(row: NicheRow) -> NicheConfig:
         llm_provider=row.llm_provider,
         llm_model=row.llm_model,
         image_provider=row.image_provider,
+        thumbnail_provider=getattr(row, "thumbnail_provider", "") or "",
         image_aspect_default=row.image_aspect_default,
         image_count_short=row.image_count_short,
         image_count_long=row.image_count_long,
@@ -124,12 +125,31 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
                     # Music is optional — if not configured, run with music disabled.
                     music_creds = None
 
+        # Optional dedicated thumbnail provider (e.g. nano_banana via Gemini key).
+        thumb_provider_name = (niche_cfg.thumbnail_provider or "").strip()
+        thumb_creds: dict | None = None
+        if thumb_provider_name and thumb_provider_name != niche_cfg.image_provider:
+            try:
+                thumb_creds = _load_credentials(session, "image", thumb_provider_name)
+            except MissingCredentialsError:
+                # nano_banana / dalle reuse the gemini / openai LLM key.
+                if thumb_provider_name == "nano_banana":
+                    thumb_creds = _load_credentials(session, "llm", "gemini")
+                elif thumb_provider_name == "dalle":
+                    thumb_creds = _load_credentials(session, "llm", "openai")
+                else:
+                    raise
+
     llm: LLMProvider = get_provider("llm", niche_cfg.llm_provider, **llm_creds)
     image: ImageProvider = get_provider("image", niche_cfg.image_provider, **image_creds)
     voice: VoiceProvider = get_provider("voice", niche_cfg.voice_provider, **voice_creds)
     music: MusicProvider | None = None
     if music_creds is not None:
         music = get_provider("music", niche_cfg.music_provider, **music_creds)
+
+    thumbnail_image: ImageProvider | None = None
+    if thumb_creds is not None:
+        thumbnail_image = get_provider("image", thumb_provider_name, **thumb_creds)
 
     ctx = PipelineContext(
         niche=niche_cfg,
@@ -138,5 +158,6 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
         voice=voice,
         music=music,
         tenant_id=tenant_id,
+        thumbnail_image=thumbnail_image,
     )
     return ctx, niche_row

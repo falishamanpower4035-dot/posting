@@ -37,6 +37,9 @@ class NicheConfig(BaseModel):
     llm_model: str = "gpt-4o-mini"
 
     image_provider: str = "pexels"  # safe free default
+    # Optional dedicated provider for the thumbnail only (e.g. nano_banana).
+    # Empty string = reuse image_provider.
+    thumbnail_provider: str = ""
     image_aspect_default: str = "9:16"
     image_count_short: int = 10
     image_count_long: int = 20

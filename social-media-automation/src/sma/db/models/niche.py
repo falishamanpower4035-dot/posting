@@ -42,6 +42,9 @@ class Niche(Base, TenantOwned):
     llm_model: Mapped[str] = mapped_column(String(64), nullable=False, default="gpt-4o-mini")
 
     image_provider: Mapped[str] = mapped_column(String(32), nullable=False, default="pexels")
+    # Optional dedicated provider for the THUMBNAIL only (e.g. nano_banana).
+    # Empty = reuse image_provider (free providers reuse a scene frame).
+    thumbnail_provider: Mapped[str] = mapped_column(String(32), nullable=False, default="")
 
     voice_provider: Mapped[str] = mapped_column(String(32), nullable=False, default="elevenlabs")
     voice_id: Mapped[str] = mapped_column(String(64), nullable=False, default="")

@@ -23,3 +23,6 @@ class PipelineContext:
     voice: VoiceProvider
     music: MusicProvider | None  # None when music is disabled
     tenant_id: int = 1  # always 1 in single-tenant mode
+    # Optional dedicated provider JUST for the thumbnail (e.g. Gemini Nano Banana).
+    # When None, the thumbnail reuses `image` (free providers reuse a scene frame).
+    thumbnail_image: ImageProvider | None = None

@@ -27,6 +27,7 @@ class _NicheBase(BaseModel):
     llm_provider: str = "openai"
     llm_model: str = "gpt-4o-mini"
     image_provider: str = "pexels"
+    thumbnail_provider: str = ""
     voice_provider: str = "elevenlabs"
     voice_id: str = ""
     voice_model: str | None = None
@@ -62,6 +63,7 @@ class NicheUpdate(BaseModel):
     llm_provider: str | None = None
     llm_model: str | None = None
     image_provider: str | None = None
+    thumbnail_provider: str | None = None
     voice_provider: str | None = None
     voice_id: str | None = None
     voice_model: str | None = None
