@@ -1,14 +1,16 @@
-"""Falisha job-lead → Facebook Page posting service."""
+"""Falisha job-lead → Facebook Page posting service.
+
+Accepts a job lead payload directly — no Supabase connection needed.
+The Falisha backend reads its own DB and sends the data here.
+"""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any
 
 from loguru import logger
 
 from sma.config import get_settings
-from sma.falisha.supabase import FalishaSupabase
 from sma.providers.social.facebook import FacebookPoster
 
 
@@ -32,7 +34,7 @@ def _fmt_salary(
     return f"{cur}{int(min_sal or max_sal or 0):,}"
 
 
-def _build_post_text(lead: dict[str, Any]) -> str:
+def build_post_text(lead: dict[str, Any]) -> str:
     lines: list[str] = []
     lines.append(f"🔍 Hiring Now: {lead['title']}")
     lines.append("")
@@ -67,31 +69,22 @@ def _build_post_text(lead: dict[str, Any]) -> str:
 
 def is_configured() -> bool:
     cfg = get_settings()
-    return bool(cfg.meta_page_token and cfg.meta_page_id and cfg.falisha_supabase_url and cfg.falisha_supabase_service_key)
+    return bool(cfg.meta_page_token and cfg.meta_page_id)
 
 
-def post_job_lead(lead_id: str) -> dict[str, Any]:
+def post_job_lead(lead: dict[str, Any]) -> dict[str, Any]:
     """
-    Fetch the job_lead from Falisha Supabase, post it to Facebook, record the result.
-    Returns: {"post_id": str, "already_posted": bool}
+    Format the job lead and post it to the Facebook Page.
+    Returns: {"post_id": str}
     """
     cfg = get_settings()
-    db = FalishaSupabase(cfg.falisha_supabase_url, cfg.falisha_supabase_service_key)
     fb = FacebookPoster(page_token=cfg.meta_page_token, page_id=cfg.meta_page_id)
 
-    lead = db.get_job_lead(lead_id)
-    if lead.get("fb_post_id"):
-        logger.info(f"Lead {lead_id} already posted as {lead['fb_post_id']}")
-        return {"post_id": lead["fb_post_id"], "already_posted": True}
-
-    message = _build_post_text(lead)
+    message = build_post_text(lead)
     result = fb.post_text(message, link=lead.get("source_url") or None)
 
     if not result.success:
         raise RuntimeError(f"Facebook post failed: {result.error}")
 
-    fb_posted_at = datetime.now(timezone.utc).isoformat()
-    db.mark_lead_posted(lead_id, result.external_post_id or "", fb_posted_at)
-    logger.info(f"Lead {lead_id} posted to Facebook as {result.external_post_id}")
-
-    return {"post_id": result.external_post_id, "already_posted": False}
+    logger.info(f"Posted lead '{lead.get('title')}' to Facebook as {result.external_post_id}")
+    return {"post_id": result.external_post_id}
