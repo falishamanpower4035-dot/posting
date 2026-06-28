@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 
 from loguru import logger
 
@@ -17,7 +18,13 @@ from sma.providers.llm.base import LLMProvider
 #     50+ articles; scoring every one is wasted LLM spend).
 #   - Truncate each article's content before sending to the LLM so a single
 #     long article can't blow up token cost.
-MAX_TOPICS_TO_SCORE = 12
+#
+# NOTE: keep this comfortably above the number a single feed pull returns, or
+# the engine starves: a stable RSS feed surfaces the same top-N items every
+# cycle, those get scored→used, and the fresh items further down the feed are
+# never scored, so the SCORED pool runs dry. Scoring with gpt-4o-mini is ~$0.0001
+# per topic, so 50 is still well under a cent per cycle. Override via env.
+MAX_TOPICS_TO_SCORE = int(os.environ.get("MAX_TOPICS_TO_SCORE", "50"))
 MAX_CONTENT_CHARS_FOR_SCORING = 600
 
 
