@@ -49,9 +49,8 @@ class Settings(BaseSettings):
     meta_page_token: str = ""
     meta_page_id: str = ""
 
-    # Falisha integration — Supabase access for job-lead Facebook posting
-    falisha_supabase_url: str = ""
-    falisha_supabase_service_key: str = ""
+    # Falisha integration — job-lead Facebook posting (lead data arrives over HTTP;
+    # the page token/id come from meta_page_token/meta_page_id above)
     falisha_posting_api_key: str = ""  # shared secret for the /falisha/* endpoints
     google_client_id: str = ""
     google_client_secret: str = ""
