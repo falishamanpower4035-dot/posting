@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     meta_app_id: str = ""
     meta_app_secret: str = ""
     meta_page_token: str = ""
+    meta_page_id: str = ""
+
+    # Falisha integration — Supabase access for job-lead Facebook posting
+    falisha_supabase_url: str = ""
+    falisha_supabase_service_key: str = ""
+    falisha_posting_api_key: str = ""  # shared secret for the /falisha/* endpoints
     google_client_id: str = ""
     google_client_secret: str = ""
     youtube_api_key: str = ""

@@ -45,6 +45,7 @@ from sma.web.routers import (
     topics as topics_routes,
     usage as usage_routes,
     whop_webhook as whop_webhook_routes,
+    falisha as falisha_routes,
 )
 
 
@@ -114,6 +115,9 @@ def create_app() -> FastAPI:
     app.include_router(prompt_templates_routes.router)
     app.include_router(usage_routes.router)
     app.include_router(actions_routes.router)
+
+    # Falisha CRM integration (API-key auth, no user session needed)
+    app.include_router(falisha_routes.router)
 
     # OAuth — connect + callback per platform
     app.include_router(meta_oauth.router)

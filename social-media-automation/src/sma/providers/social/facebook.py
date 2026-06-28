@@ -60,6 +60,34 @@ class FacebookPoster:
             logger.error(f"Facebook post failed: {e}")
             return PostResult(success=False, platform=self.platform, error=str(e))
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(min=2, max=15),
+        retry=retry_if_exception_type(httpx.HTTPError),
+        reraise=True,
+    )
+    def post_text(self, message: str, link: str | None = None) -> PostResult:
+        """Post a plain-text (+ optional link preview) update to the Page feed."""
+        data: dict[str, str] = {"message": message, "access_token": self._token}
+        if link:
+            data["link"] = link
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                r = client.post(f"{self._base}/{self._page_id}/feed", data=data)
+                r.raise_for_status()
+                resp_json = r.json()
+                post_id = resp_json.get("id")
+                return PostResult(
+                    success=True,
+                    platform=self.platform,
+                    external_post_id=post_id,
+                    url=f"https://www.facebook.com/{post_id}" if post_id else None,
+                    raw_response=resp_json,
+                )
+        except httpx.HTTPError as e:
+            logger.error(f"Facebook text post failed: {e}")
+            return PostResult(success=False, platform=self.platform, error=str(e))
+
     @staticmethod
     def _compose(caption: str, hashtags: list[str]) -> str:
         tags = " ".join(f"#{t}" for t in hashtags)
