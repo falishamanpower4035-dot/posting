@@ -85,6 +85,16 @@ def main() -> int:
     if hasattr(signal, "SIGTERM"):
         signal.signal(signal.SIGTERM, _graceful_shutdown)
 
+    # Single-tenant: ensure a Facebook account exists from env creds BEFORE the
+    # first generation pass, so auto-generated posts can target Facebook without
+    # the frontend OAuth flow. Idempotent + non-fatal.
+    try:
+        from sma.web.auth.bootstrap import bootstrap_env_facebook
+
+        bootstrap_env_facebook()
+    except Exception as e:
+        logger.error(f"Facebook env seed failed (non-fatal): {e}")
+
     # Run jobs once at startup so a fresh deploy doesn't wait up to 30 min
     # for the first topic discovery cycle.
     logger.info("Running initial jobs at startup...")
