@@ -66,3 +66,40 @@ def bootstrap_single_admin() -> None:
         session.add(user)
         session.commit()
         logger.info(f"✓ Bootstrapped single-tenant admin: {email} (tenant_id={tenant.id})")
+
+
+def bootstrap_env_facebook() -> None:
+    """Single-tenant convenience: seed a Facebook Page account from env creds.
+
+    When META_PAGE_TOKEN + META_PAGE_ID are set, create (or refresh) an active
+    `facebook` SocialAccount for tenant 1 so the content pipeline can post to
+    Facebook WITHOUT going through the frontend OAuth flow. This bridges the gap
+    where the engine only ever reads social accounts from the DB (populated by
+    OAuth), never from env vars.
+
+    Idempotent: re-runs on every boot and updates the stored token, so rotating
+    the env var refreshes the account. No-op in multi-tenant mode (there each
+    tenant connects via their own OAuth) or when the vars are unset.
+    """
+    settings = get_settings()
+    if settings.deployment_mode.value != "single_tenant":
+        return
+
+    page_token = (settings.meta_page_token or "").strip()
+    page_id = (settings.meta_page_id or "").strip()
+    if not (page_token and page_id):
+        logger.debug("META_PAGE_TOKEN/META_PAGE_ID not set — skipping Facebook env seed")
+        return
+
+    # Imported lazily so callers that only need admin bootstrap don't pull in
+    # the OAuth helper module.
+    from sma.web.oauth.common import upsert_social_account
+
+    row_id = upsert_social_account(
+        tenant_id=1,
+        platform="facebook",
+        account_handle=page_id,
+        token_payload={"page_token": page_token, "page_id": page_id},
+        refresh_expires_at=None,  # env-supplied; never auto-expired by the refresh job
+    )
+    logger.info(f"✓ Seeded Facebook Page from env (page_id={page_id}, social_account id={row_id})")

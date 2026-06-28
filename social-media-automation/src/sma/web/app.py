@@ -24,7 +24,7 @@ from loguru import logger  # noqa: E402
 
 from sma import __version__
 from sma.config import get_settings
-from sma.web.auth.bootstrap import bootstrap_single_admin
+from sma.web.auth.bootstrap import bootstrap_env_facebook, bootstrap_single_admin
 from sma.web.oauth import google as google_oauth
 from sma.web.oauth import linkedin as linkedin_oauth
 from sma.web.oauth import meta as meta_oauth
@@ -63,6 +63,12 @@ async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
     except Exception as e:
         # Don't crash the whole app — first request will surface a clearer error.
         logger.error(f"Admin bootstrap failed (non-fatal): {e}")
+    # Single-tenant: seed a Facebook account from META_PAGE_TOKEN/ID so the
+    # content pipeline can post to FB without the frontend OAuth flow.
+    try:
+        bootstrap_env_facebook()
+    except Exception as e:
+        logger.error(f"Facebook env seed failed (non-fatal): {e}")
     yield
     logger.info("Shutting down")
 
