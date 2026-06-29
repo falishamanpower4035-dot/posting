@@ -11,6 +11,7 @@ smoke runner; this is the addition, not a replacement.
 
 from __future__ import annotations
 
+from loguru import logger
 from sqlalchemy import select
 
 from sma.core.niche.config import NicheConfig
@@ -105,13 +106,29 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
         # Voice: openai_tts / dalle-style providers reuse the OpenAI LLM key, so
         # if a dedicated voice credential isn't stored, fall back to the OpenAI
         # key the tenant already has. Same for music providers that piggyback.
+        # Prefer the niche's configured voice provider. If its key isn't stored,
+        # fall back to OpenAI TTS (reusing the OpenAI LLM key) so a deploy that
+        # only has an OpenAI key can still produce voiceovers. (openai_tts itself
+        # also reuses the OpenAI LLM key.)
+        effective_voice_provider = niche_cfg.voice_provider
         try:
             voice_creds = _load_credentials(session, "voice", niche_cfg.voice_provider)
         except MissingCredentialsError:
             if niche_cfg.voice_provider == "openai_tts":
                 voice_creds = _load_credentials(session, "llm", "openai")
             else:
-                raise
+                try:
+                    voice_creds = _load_credentials(session, "llm", "openai")
+                except MissingCredentialsError:
+                    raise MissingCredentialsError(
+                        f"No credentials for voice/{niche_cfg.voice_provider!r}, and no "
+                        f"OpenAI key to fall back to. Add one on the Keys page."
+                    ) from None
+                effective_voice_provider = "openai_tts"
+                logger.warning(
+                    f"voice provider {niche_cfg.voice_provider!r} has no stored key — "
+                    f"falling back to openai_tts (OpenAI key)"
+                )
 
         music_creds: dict | None = None
         if niche_cfg.music_enabled:
@@ -142,7 +159,7 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
 
     llm: LLMProvider = get_provider("llm", niche_cfg.llm_provider, **llm_creds)
     image: ImageProvider = get_provider("image", niche_cfg.image_provider, **image_creds)
-    voice: VoiceProvider = get_provider("voice", niche_cfg.voice_provider, **voice_creds)
+    voice: VoiceProvider = get_provider("voice", effective_voice_provider, **voice_creds)
     music: MusicProvider | None = None
     if music_creds is not None:
         music = get_provider("music", niche_cfg.music_provider, **music_creds)
