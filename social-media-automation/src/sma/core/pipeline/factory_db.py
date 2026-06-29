@@ -150,12 +150,21 @@ def build_context_for_niche(niche_id: int) -> tuple[PipelineContext, NicheRow]:
                 thumb_creds = _load_credentials(session, "image", thumb_provider_name)
             except MissingCredentialsError:
                 # nano_banana / dalle reuse the gemini / openai LLM key.
-                if thumb_provider_name == "nano_banana":
-                    thumb_creds = _load_credentials(session, "llm", "gemini")
-                elif thumb_provider_name == "dalle":
-                    thumb_creds = _load_credentials(session, "llm", "openai")
-                else:
-                    raise
+                try:
+                    if thumb_provider_name == "nano_banana":
+                        thumb_creds = _load_credentials(session, "llm", "gemini")
+                    elif thumb_provider_name == "dalle":
+                        thumb_creds = _load_credentials(session, "llm", "openai")
+                    else:
+                        raise MissingCredentialsError(thumb_provider_name)
+                except MissingCredentialsError:
+                    # No key for the dedicated thumbnail provider — degrade to the
+                    # main image provider (scene frame) instead of failing the run.
+                    thumb_creds = None
+                    logger.warning(
+                        f"thumbnail provider {niche_cfg.thumbnail_provider!r} has no stored "
+                        f"key — using the main image provider for the thumbnail instead"
+                    )
 
     llm: LLMProvider = get_provider("llm", niche_cfg.llm_provider, **llm_creds)
     image: ImageProvider = get_provider("image", niche_cfg.image_provider, **image_creds)
